@@ -1,0 +1,49 @@
+title: "nathanrooy.github.io"
+description: "a collection of random projects"
+feedurl: "https://nathanrooy.github.io/feed.xml"
+url: "https://nathanrooy.github.io"
+keywords: "Python, tutorials, machine learning, deep learning, natural language processing, evolutionary optimization, urban design, mobility, geospatial analysis, data science, web scraping, Cincinnati"
+
+future:      true
+highlighter: rouge
+markdown:    kramdown 
+
+  
+gems:
+  - jekyll-sitemap
+  - jekyll-paginate
+  - jekyll-gist
+  - jekyll-feed
+  
+sass:
+  sass_dir: _sass
+  style: compressed
+
+permalink: /:categories/:year-:month-:day/:title/
+
+include: 
+  - .htaccessm
+  - _config.yml
+
+exclude: 
+  - "*.less"
+  - "*.sublime-project"
+  - "*.sublime-workspace"
+  - .asset-cache
+  - .bundle
+  - .jekyll-assets-cache
+  - .sass-cache
+  - CHANGELOG
+  - Capfile
+  - Gemfile
+  - Gruntfile.js
+  - LICENSE
+  - README
+  - Rakefile
+  - gulpfile.js
+  - lib
+  - log
+  - node_modules
+  - package.json
+  - spec
+  - tmp

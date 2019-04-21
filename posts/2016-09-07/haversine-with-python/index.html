@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Calculating the Distance Between Two GPS Coordinates with Python (Haversine Formula)</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-09-07/haversine-with-python/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="By making a few geometric assumptions, the Haversine formula provies an exceptionally simple way of calculating distance between two latitude/longitude pairs.">
+        <meta name="keywords" content="python, latitude, longitude, haversine, geospatial analysis">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="By making a few geometric assumptions, the Haversine formula provies an exceptionally simple way of calculating distance between two latitude/longitude pairs.">
+        <meta name="twitter:title" content="Calculating the Distance Between Two GPS Coordinates with Python (Haversine Formula)">
+        <meta name="twitter:image" content="">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="By making a few geometric assumptions, the Haversine formula provies an exceptionally simple way of calculating distance between two latitude/longitude pairs.">
+        <meta property="og:image" content="">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Calculating the Distance Between Two GPS Coordinates with Python (Haversine Formula)">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-09-07/haversine-with-python/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Calculating the Distance Between Two GPS Coordinates with Python (Haversine Formula)</h1>
+        <p class="post-meta">September 7, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p class="TLDR"><strong>TL;DR</strong> - By making a few geometric assumptions, the Haversine formula provies an exceptionally simple way of calculating distance between two latitude/longitude pairs. This tutorial will show you how to implement your own version in Python.</p>
+
+<p>A lot of my posts recently have focused on the analysis of spacial data coming from either the GPS on my phone (collected through Strava) or geo-tagged tweets. Because of this I ended up writing my own Python module for calculating the distance between two latitude/longitude pairs. This is accomplished using the <a target="_blank" href="https://en.wikipedia.org/wiki/Haversine_formula">Haversine formula</a>. While more accurate methods exist for calculating the distance between two points on earths surface, the Haversine formula and Python implementation couldn’t be any simpler. Below is a breakdown of the Haversine formula.</p>
+
+<p>Haversine:</p>
+
+<equation class="has-jax">$$ a=\sin^2\left(\frac{\Delta\phi}{2}\right) +\cos(\phi_1)\cdot\cos(\phi_2)\cdot\sin^2\left(\frac{\Delta\lambda}{2}\right)$$</equation>
+
+<p>With:</p>
+
+<equation class="has-jax">$$ c=2\cdot arctan2\left(\sqrt{a},\sqrt{1-a}\right) $$</equation>
+
+<p>and:</p>
+
+<equation class="has-jax">$$ d=R\cdot c $$</equation>
+
+<p>Where:</p>
+<p>
+<equation class="has-jax" style="padding-left:30px">\( \phi \)</equation> = latitude<br />
+<equation class="has-jax" style="padding-left:30px">\( \lambda \)</equation> = longitude<br />
+<equation class="has-jax" style="padding-left:30px">\( R \)</equation> = 6371 (Earth&rsquo;s mean radius in km)<br />
+</p>
+
+<p>Much of Haverines’ simplicity comes from the underlying assumption that Earth is a perfect sphere (which it isn’t…). Because of this, it can lead to errors of up to 0.5%. More accurate methods exist but at the expense of computational complexity. Below is the Python implementation:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   Haversine Formula
+#   June, 2016
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="k">class</span> <span class="nc">Haversine</span><span class="p">:</span>
+    <span class="s">'''
+    use the haversine class to calculate the distance between
+    two lon/lat coordnate pairs.
+    output distance available in kilometers, meters, miles, and feet.
+    example usage: Haversine([lon1,lat1],[lon2,lat2]).feet
+    
+    '''</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coord1</span><span class="p">,</span><span class="n">coord2</span><span class="p">):</span>
+        <span class="n">lon1</span><span class="p">,</span><span class="n">lat1</span><span class="o">=</span><span class="n">coord1</span>
+        <span class="n">lon2</span><span class="p">,</span><span class="n">lat2</span><span class="o">=</span><span class="n">coord2</span>
+        
+        <span class="n">R</span><span class="o">=</span><span class="mi">6371000</span>                               <span class="c1"># radius of Earth in meters
+</span>        <span class="n">phi_1</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span>
+        <span class="n">phi_2</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span>
+
+        <span class="n">delta_phi</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lat2</span><span class="o">-</span><span class="n">lat1</span><span class="p">)</span>
+        <span class="n">delta_lambda</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lon2</span><span class="o">-</span><span class="n">lon1</span><span class="p">)</span>
+
+        <span class="n">a</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">delta_phi</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span>\
+           <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_1</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi_2</span><span class="p">)</span><span class="o">*</span>\
+           <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">delta_lambda</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">),</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">meters</span><span class="o">=</span><span class="n">R</span><span class="o">*</span><span class="n">c</span>                         <span class="c1"># output distance in meters
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">km</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meters</span><span class="o">/</span><span class="mf">1000.0</span>              <span class="c1"># output distance in kilometers
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">miles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meters</span><span class="o">*</span><span class="mf">0.000621371</span>      <span class="c1"># output distance in miles
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">feet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">miles</span><span class="o">*</span><span class="mi">5280</span>               <span class="c1"># output distance in feet
+</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__Haversine__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span></code></pre></figure>
+
+<p>Example usage:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">haversine</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Haversine</span><span class="p">([</span><span class="o">-</span><span class="mf">84.412977</span><span class="p">,</span><span class="mf">39.152501</span><span class="p">],[</span><span class="o">-</span><span class="mf">84.412946</span><span class="p">,</span><span class="mf">39.152505</span><span class="p">])</span><span class="o">.</span><span class="n">feet</span> 
+<span class="mf">8.890493621837097</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Haversine</span><span class="p">((</span><span class="o">-</span><span class="mf">84.412977</span><span class="p">,</span><span class="mf">39.152501</span><span class="p">),(</span><span class="o">-</span><span class="mf">84.412946</span><span class="p">,</span><span class="mf">39.152505</span><span class="p">))</span><span class="o">.</span><span class="n">feet</span> 
+<span class="mf">8.890493621837097</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Haversine</span><span class="p">((</span><span class="o">-</span><span class="mf">84.412977</span><span class="p">,</span><span class="mf">39.152501</span><span class="p">),(</span><span class="o">-</span><span class="mf">84.412946</span><span class="p">,</span><span class="mf">39.152505</span><span class="p">))</span><span class="o">.</span><span class="n">km</span> 
+<span class="mf">0.0027098232942902385</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Haversine</span><span class="p">((</span><span class="o">-</span><span class="mf">84.412977</span><span class="p">,</span><span class="mf">39.152501</span><span class="p">),(</span><span class="o">-</span><span class="mf">84.412946</span><span class="p">,</span><span class="mf">39.152505</span><span class="p">))</span><span class="o">.</span><span class="n">miles</span> 
+<span class="mf">0.00168380561019642</span></code></pre></figure>
+
+<p>Note haversine script accepts the coordinates in both tuple “()” and list “[]” form. Additionally, the script can be downloaded from my GitHub located (<a target="_blank" href="https://github.com/nathanrooy/spatial-analysis/blob/master/haversine.py">here</a>).</p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#geospatial analysis">#geospatial analysis</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

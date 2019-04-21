@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Evolving Simple Organisms using a Genetic Algorithm and Deep Learning from Scratch with Python</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2017-11-30/evolving-simple-organisms-using-a-genetic-algorithm-and-deep-learning/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="Learn how to evolve a population of simple organisms each containing a unique neural network using a genetic algorithm">
+        <meta name="keywords" content="Python, tutorial, machine learning, deep learning, evolutionary optimization, genetic algorithm, simple organisms">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="Learn how to evolve a population of simple organisms each containing a unique neural network using a genetic algorithm">
+        <meta name="twitter:title" content="Evolving Simple Organisms using a Genetic Algorithm and Deep Learning from Scratch with Python">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2017-11-30/feature-image.png">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="Learn how to evolve a population of simple organisms each containing a unique neural network using a genetic algorithm">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2017-11-30/feature-image.png">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Evolving Simple Organisms using a Genetic Algorithm and Deep Learning from Scratch with Python">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2017-11-30/evolving-simple-organisms-using-a-genetic-algorithm-and-deep-learning/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Evolving Simple Organisms using a Genetic Algorithm and Deep Learning from Scratch with Python</h1>
+        <p class="post-meta">November 30, 2017</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p class="TLDR"><strong>TL;DR</strong> - Learn how to evolve a population of simple organisms each containing a unique neural network using a genetic algorithm.</p>
+
+<h3>Introduction</h3>
+<p>A few weeks ago I got pretty deep into a late night <a target="_blank" href="http://youtube-rabbit-hole.urbanup.com/9025238">YouTube rabbit hole</a>, and somewhere around <a target="_blank" href="https://youtu.be/HgWQ-gPIvt4">evolving soft body robots</a>, I came across this video (<a target="_blank" href="https://youtu.be/TC5jzw05mNo">here</a>). I’m not sure what if it was the peaceful background music or the hypnotizing motion of the dragonflies but I wanted to try and run the simulation on my local computer. After failing to find a GitHub repo for this, I decided to spend a few hours coding my own version in Python. I was pretty happy with the end results so I decided to turn it into a tutorial.</p>
+
+<p>During this post, well code from scratch a simulation environment that contains organisms that must consume as much as food as possible in order to survive (click <a href="#results">here</a> to see the final results). If these organisms were people, they would be competitive eaters.</p>
+
+<center><fig><img src="/images/2017-11-30/hot-dog-eating-contest.gif" /></fig></center>
+
+<h3>Neural Network and Navigation</h3>
+
+<p>Starting off with the basics, the organisms will be controlled by a simple, fully connected <a target="_blank" href="https://en.wikipedia.org/wiki/Artificial_neural_network">neural network</a>. The input for the neural network will be a normalized value ranging from [-1, +1], representing the direction to the nearest food particle. This heading is calculated by taking the direction to the nearest food particle (which ranges from +/- 180 degrees) and dividing it by 180. Below are two navigation examples.</p>
+
+<center><fig><img alt="organism heading calculation" title="organism heading calculation" src="/images/2017-11-30/heading-calculation.png" /></fig></center>
+
+<p>Because our single input ranges from [-1, +1] and our desired outputs also range from [-1, +1], the <a target="_blank" href="https://en.wikipedia.org/wiki/Hyperbolic_function">tanh</a> will make the ideal <a target="_blank" href="https://en.wikipedia.org/wiki/Activation_function">activation function</a>. Below is a diagram of the neural network with its inputs and outputs as well as its hidden layer. There exists many excellent tutorials on neural networks online so I wont go into great detail here. I recommend the following to those that are interested: <a target="_blank" href="https://youtu.be/aircAruvnKk">here</a>, <a target="_blank" href="https://gormanalysis.com/introduction-to-neural-networks/">here</a>, <a target="_blank" href="https://gormanalysis.com/neural-networks-a-worked-example/">here</a>, and <a target="_blank" href="http://neuralnetworksanddeeplearning.com/">here</a>.</p>
+
+<center><fig><img src="/images/2017-11-30/organism-neural-network.png" /></fig></center>
+
+<p>Since the neural network is nothing more than simple matrix multiplication, it only takes up a few lines of code thanks to <a target="_blank" href="http://www.numpy.org/">NumPy</a>. During the evolution process, it’s these weights that will be optimized. Lastly,  I have set the default number of hidden nodes to five, but this can be increased or decreased to your liking.</p>
+
+<h3>Organism</h3>
+
+<p>The organism class is the star of the show here. It contains the neural network, as well as functions for updating its heading, velocity, and position. When an organism is initialized for the first time, its position, heading, velocity, acceleration, and neural network weights are all randomly generated.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">organism</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">wih</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'x_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'x_max'</span><span class="p">])</span>  <span class="c1"># position (x)
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'y_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'y_max'</span><span class="p">])</span>  <span class="c1"># position (y)
+</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">360</span><span class="p">)</span>                 <span class="c1"># orientation   [0, 360]
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">settings</span><span class="p">[</span><span class="s">'v_max'</span><span class="p">])</span>   <span class="c1"># velocity      [0, v_max]
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">dv</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">settings</span><span class="p">[</span><span class="s">'dv_max'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dv_max'</span><span class="p">])</span>   <span class="c1"># dv
+</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_food</span> <span class="o">=</span> <span class="mi">100</span>   <span class="c1"># distance to nearest food
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">r_food</span> <span class="o">=</span> <span class="mi">0</span>     <span class="c1"># orientation to nearest food
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">fitness</span> <span class="o">=</span> <span class="mi">0</span>    <span class="c1"># fitness (food count)
+</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wih</span> <span class="o">=</span> <span class="n">wih</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">who</span> <span class="o">=</span> <span class="n">who</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        
+        
+    <span class="c1"># NEURAL NETWORK
+</span>    <span class="k">def</span> <span class="nf">think</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># SIMPLE MLP
+</span>        <span class="n">af</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>               <span class="c1"># activation function
+</span>        <span class="n">h1</span> <span class="o">=</span> <span class="n">af</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wih</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_food</span><span class="p">))</span>  <span class="c1"># hidden layer
+</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">af</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="p">,</span> <span class="n">h1</span><span class="p">))</span>          <span class="c1"># output layer
+</span>
+        <span class="c1"># UPDATE dv AND dr WITH MLP RESPONSE
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">nn_dv</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>   <span class="c1"># [-1, 1]  (accelerate=1, deaccelerate=-1)
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">nn_dr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>   <span class="c1"># [-1, 1]  (left=1, right=-1)
+</span>
+        
+    <span class="c1"># UPDATE HEADING
+</span>    <span class="k">def</span> <span class="nf">update_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_dr</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dr_max'</span><span class="p">]</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dt'</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">%</span> <span class="mi">360</span>
+
+        
+    <span class="c1"># UPDATE VELOCITY
+</span>    <span class="k">def</span> <span class="nf">update_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_dv</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dv_max'</span><span class="p">]</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dt'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">&gt;</span> <span class="n">settings</span><span class="p">[</span><span class="s">'v_max'</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">'v_max'</span><span class="p">]</span>
+
+    
+    <span class="c1"># UPDATE POSITION
+</span>    <span class="k">def</span> <span class="nf">update_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">))</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dt'</span><span class="p">]</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">))</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dt'</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="n">dx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="n">dy</span>
+        </code></pre></figure>
+
+<h3>Food</h3>
+
+<p>The only other class we need to create is the food class. This is a simple object that contains an x/y location and an energy value. This energy value will directly impact the organisms fitness. For now, this energy value remains constant and set at one, but it can be randomized or changed to anything if you feel like modifying it to. Additionally, a <i>respawn</i> function is present to regenerate the location of the food particle once it as been consumed by an organism. This keeps the total number of food particles within each simulation time step constant.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">food</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'x_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'x_max'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'y_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'y_max'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">respawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">settings</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'x_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'x_max'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">uniform</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'y_min'</span><span class="p">],</span> <span class="n">settings</span><span class="p">[</span><span class="s">'y_max'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="mi">1</span></code></pre></figure>
+
+<h3>Evolution</h3>
+
+<p>The organism will be optimized using a <a target="_blank" href="https://en.wikipedia.org/wiki/Genetic_algorithm">genetic algorithm</a> (GA) which falls under the larger umbrella of <a target="_blank" href="https://en.wikipedia.org/wiki/Evolutionary_algorithm">evolutionaty algorithms</a> (EA). Genetic algorithms work by imitating the natural biological process of evolution by starting off with an initial population, and through <a target="_blank" href="https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)">selection</a>, <a target="_blank" href="https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)">crossover</a>, and <a target="_blank" href="https://en.wikipedia.org/wiki/Mutation_(genetic_algorithm)">mutation</a> over many generations, an optimal solution emerges. With that said, EAs are not numerically guaranteed to find the global optimum but given proper initial conditions they are exceptionally good at searching through the design space and finding optimal or near optimal solutions. For this tutorial, the EA scheme will be as follows:</p>
+
+<ul class="ul-style-a" style="list-style-type: none;">
+    <li>
+        <p>
+            <b>Selection</b> - The simplest form of selection is called <i>elitism</i>, this is where the top n% of the current generations fittest individuals are selected and carried over to the next generation.
+        </p>
+    </li>
+
+    <li>
+        <p>
+            <b>Crossover</b> - Using the same pool of individuals selected during the elitism step previously, pairs of individuals will be randomly selected as parents and a new offspring will be generated. Because we’re dealing with the weights of the neural network, the following equation will be used to crossover traits between the two parents to the resulting offspring:
+
+                <equation class="has-jax">$$ offspring=parent_1(a) + parent_2(1-a) $$</equation>
+
+            Where <equation class="has-jax">\( a \)</equation> is a randomly generated value between zero and one, and <equation class="has-jax">\( parent_1 \)</equation>, and <equation class="has-jax">\( parent_2 \)</equation> represent the weights of the neural network. Because there are two matrices that are being blending together (wih and who), the implementation will actually be as follows:
+
+                <equation class="has-jax">$$ offspring\_wih=parent\_wih_1(a) + parent\_wih_2(1-a) $$</equation>
+                <equation class="has-jax">$$ offspring\_who=parent\_who_1(a) + parent\_who_2(1-a) $$</equation>
+        </p>
+    </li>
+    
+    <li>
+        <p>
+            <b>Mutation</b> - Lastly, once the new offspring has been generated, a random number between zero and one will be generated. If this value is below the user initialized mutation threshold, mutation will occur. In the event that mutation does occur, a random weight from one of the two neural network weight matrices will be replaced with a random value that is within +/- 10% of the original value. This will create just a slight variation within the organism that could potentially lead to a fitter organism. The mutation effect is limited to +/- 10% of the original value because we want to avoid causing catastrophic failure within the neural network and potentially paralyzing the organism.
+        </p>
+    </li>
+</ul>
+
+<p>The diagram below shows just how simple this EA scheme is.</p>
+
+<center><fig><img alt="organism evolution" title="organism evolution" src="/images/2017-11-30/organism-evolution.png" /></fig></center>
+
+<p>And finally, the codified EA routine can be seen below:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">evolve</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">organisms_old</span><span class="p">,</span> <span class="n">gen</span><span class="p">):</span>
+
+    <span class="n">elitism_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'elitism'</span><span class="p">]</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s">'pop_size'</span><span class="p">]))</span>
+    <span class="n">new_orgs</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">'pop_size'</span><span class="p">]</span> <span class="o">-</span> <span class="n">elitism_num</span>
+
+    <span class="c1">#--- GET STATS FROM CURRENT GENERATION ----------------+
+</span>    <span class="n">stats</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">organisms_old</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">org</span><span class="o">.</span><span class="n">fitness</span> <span class="o">&gt;</span> <span class="n">stats</span><span class="p">[</span><span class="s">'BEST'</span><span class="p">]</span> <span class="ow">or</span> <span class="n">stats</span><span class="p">[</span><span class="s">'BEST'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s">'BEST'</span><span class="p">]</span> <span class="o">=</span> <span class="n">org</span><span class="o">.</span><span class="n">fitness</span>
+
+        <span class="k">if</span> <span class="n">org</span><span class="o">.</span><span class="n">fitness</span> <span class="o">&lt;</span> <span class="n">stats</span><span class="p">[</span><span class="s">'WORST'</span><span class="p">]</span> <span class="ow">or</span> <span class="n">stats</span><span class="p">[</span><span class="s">'WORST'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s">'WORST'</span><span class="p">]</span> <span class="o">=</span> <span class="n">org</span><span class="o">.</span><span class="n">fitness</span>
+            
+        <span class="n">stats</span><span class="p">[</span><span class="s">'SUM'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">org</span><span class="o">.</span><span class="n">fitness</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">stats</span><span class="p">[</span><span class="s">'AVG'</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s">'SUM'</span><span class="p">]</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span>
+    
+    
+    <span class="c1">#--- ELITISM (KEEP BEST PERFORMING ORGANISMS) ---------+
+</span>    <span class="n">orgs_sorted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">organisms_old</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">attrgetter</span><span class="p">(</span><span class="s">'fitness'</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">organisms_new</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">elitism_num</span><span class="p">):</span>
+        <span class="n">organisms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">organism</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">wih</span><span class="o">=</span><span class="n">orgs_sorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">wih</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">orgs_sorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">who</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">orgs_sorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+    
+    <span class="c1">#--- GENERATE NEW ORGANISMS ---------------------------+
+</span>    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">new_orgs</span><span class="p">):</span>
+
+        <span class="c1"># SELECTION (TRUNCATION SELECTION)
+</span>        <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">elitism_num</span><span class="p">)</span>
+        <span class="n">random_index</span> <span class="o">=</span> <span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">org_1</span> <span class="o">=</span> <span class="n">orgs_sorted</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">org_2</span> <span class="o">=</span> <span class="n">orgs_sorted</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="c1"># CROSSOVER
+</span>        <span class="n">crossover_weight</span> <span class="o">=</span> <span class="n">random</span><span class="p">()</span>
+        <span class="n">wih_new</span> <span class="o">=</span> <span class="p">(</span><span class="n">crossover_weight</span> <span class="o">*</span> <span class="n">org_1</span><span class="o">.</span><span class="n">wih</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">crossover_weight</span><span class="p">)</span> <span class="o">*</span> <span class="n">org_2</span><span class="o">.</span><span class="n">wih</span><span class="p">)</span>
+        <span class="n">who_new</span> <span class="o">=</span> <span class="p">(</span><span class="n">crossover_weight</span> <span class="o">*</span> <span class="n">org_1</span><span class="o">.</span><span class="n">who</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">crossover_weight</span><span class="p">)</span> <span class="o">*</span> <span class="n">org_2</span><span class="o">.</span><span class="n">who</span><span class="p">)</span>
+        
+        <span class="c1"># MUTATION
+</span>        <span class="n">mutate</span> <span class="o">=</span> <span class="n">random</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mutate</span> <span class="o">&lt;=</span> <span class="n">settings</span><span class="p">[</span><span class="s">'mutate'</span><span class="p">]:</span>
+
+            <span class="c1"># PICK WHICH WEIGHT MATRIX TO MUTATE
+</span>            <span class="n">mat_pick</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>     
+
+            <span class="c1"># MUTATE: WIH WEIGHTS
+</span>            <span class="k">if</span> <span class="n">mat_pick</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">index_row</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">settings</span><span class="p">[</span><span class="s">'hnodes'</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">=</span> <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">*</span> <span class="n">uniform</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">&gt;</span>  <span class="mi">1</span><span class="p">:</span> <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">wih_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                
+            <span class="c1"># MUTATE: WHO WEIGHTS
+</span>            <span class="k">if</span> <span class="n">mat_pick</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">index_row</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">settings</span><span class="p">[</span><span class="s">'onodes'</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">index_col</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">settings</span><span class="p">[</span><span class="s">'hnodes'</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">*</span> <span class="n">uniform</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">&gt;</span>  <span class="mi">1</span><span class="p">:</span> <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">who_new</span><span class="p">[</span><span class="n">index_row</span><span class="p">][</span><span class="n">index_col</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                    
+        <span class="n">organisms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">organism</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">wih</span><span class="o">=</span><span class="n">wih_new</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who_new</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">'gen['</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span><span class="o">+</span><span class="s">']-org['</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">+</span><span class="s">']'</span><span class="p">))</span>
+                
+    <span class="k">return</span> <span class="n">organisms_new</span><span class="p">,</span> <span class="n">stats</span>
+    </code></pre></figure>
+
+<h3>Simulation</h3>
+
+<p>The last critical piece of coding that’s needed is something to actually run the simulation. This <i>simulate</i> function will effectively represent the <a target="_blank" href="https://en.wikipedia.org/wiki/Loss_function">cost function</a> for our optimization problem and will be called once every generation. The duration of each simulation is determined by dividing the total simulation time <i>gen_time</i> (in seconds) by the duration of the time step; <i>dt</i>. As an example, if the simulation length is set at 100 seconds, and <i>dt</i> is equal to 1/25th of a second, then there will be a total of 2500 timesteps that need to be simulated. During each time step, several key values will be updated:</p>
+
+<ul class="ul-style-a" style="list-style-type: none;">
+<li>
+    <p>
+        <b>Collision detection</b> - Here we are checking for collisions between organisms and food particles. When a collision is detected, that organism will get its fitness function updated and the food particle will respawn at a new random location.
+    </p>
+</li>
+
+<li>
+    <p>
+        <b>Determine closest food particle</b> - This one is fairly self explanitory. For every organism, the closest food particle must be determined.
+    </p>
+</li>
+
+<li>
+    <p>
+        <b>Determine direction to nearest food particle</b> - Once the nearest food particle has been determined for each organism, the direction to that particle must be calculated.
+    </p>
+</li>
+
+<li>
+    <p>
+        <b>Query neural network</b> - Using the updated (and normalized) direction value, the neural network in each organism is quaried.
+    </p>
+</li>
+
+<li>
+    <p>
+        <b>Update organism</b> - Based on the respone from the neural network, the heading, velocity, and position are all updated.
+    </p>
+</li>
+</ul>
+
+<p>Below is the simulation function:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">foods</span><span class="p">,</span> <span class="n">gen</span><span class="p">):</span>
+
+    <span class="n">total_time_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">'gen_time'</span><span class="p">]</span> <span class="o">/</span> <span class="n">settings</span><span class="p">[</span><span class="s">'dt'</span><span class="p">])</span>
+    
+    <span class="c1">#--- CYCLE THROUGH EACH TIME STEP ---------------------+
+</span>    <span class="k">for</span> <span class="n">t_step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_time_steps</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+
+        <span class="c1"># PLOT SIMULATION FRAME
+</span>        <span class="c1">#if gen == settings['gens'] - 1 and settings['plot']==True:
+</span>        <span class="k">if</span> <span class="n">gen</span><span class="o">==</span><span class="mi">49</span><span class="p">:</span>
+            <span class="n">plot_frame</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">organisms</span><span class="p">,</span> <span class="n">foods</span><span class="p">,</span> <span class="n">gen</span><span class="p">,</span> <span class="n">t_step</span><span class="p">)</span>
+        
+
+        <span class="c1"># UPDATE FITNESS FUNCTION
+</span>        <span class="k">for</span> <span class="n">food</span> <span class="ow">in</span> <span class="n">foods</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">:</span>
+                <span class="n">food_org_dist</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">org</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">org</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">food</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">food</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+
+                <span class="c1"># UPDATE FITNESS FUNCTION
+</span>                <span class="k">if</span> <span class="n">food_org_dist</span> <span class="o">&lt;=</span> <span class="mf">0.075</span><span class="p">:</span>
+                    <span class="n">org</span><span class="o">.</span><span class="n">fitness</span> <span class="o">+=</span> <span class="n">food</span><span class="o">.</span><span class="n">energy</span>
+                    <span class="n">food</span><span class="o">.</span><span class="n">respawn</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+
+                <span class="c1"># RESET DISTANCE AND HEADING TO NEAREST FOOD SOURCE
+</span>                <span class="n">org</span><span class="o">.</span><span class="n">d_food</span> <span class="o">=</span> <span class="mi">100</span>
+                <span class="n">org</span><span class="o">.</span><span class="n">r_food</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># CALCULATE HEADING TO NEAREST FOOD SOURCE
+</span>        <span class="k">for</span> <span class="n">food</span> <span class="ow">in</span> <span class="n">foods</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">:</span>
+                
+                <span class="c1"># CALCULATE DISTANCE TO SELECTED FOOD PARTICLE
+</span>                <span class="n">food_org_dist</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">org</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">org</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">food</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">food</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+
+                <span class="c1"># DETERMINE IF THIS IS THE CLOSEST FOOD PARTICLE
+</span>                <span class="k">if</span> <span class="n">food_org_dist</span> <span class="o">&lt;</span> <span class="n">org</span><span class="o">.</span><span class="n">d_food</span><span class="p">:</span>
+                    <span class="n">org</span><span class="o">.</span><span class="n">d_food</span> <span class="o">=</span> <span class="n">food_org_dist</span>
+                    <span class="n">org</span><span class="o">.</span><span class="n">r_food</span> <span class="o">=</span> <span class="n">calc_heading</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">food</span><span class="p">)</span>
+
+        <span class="c1"># GET ORGANISM RESPONSE
+</span>        <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">:</span>
+            <span class="n">org</span><span class="o">.</span><span class="n">think</span><span class="p">()</span>
+
+        <span class="c1"># UPDATE ORGANISMS POSITION AND VELOCITY
+</span>        <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">organisms</span><span class="p">:</span>
+            <span class="n">org</span><span class="o">.</span><span class="n">update_r</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+            <span class="n">org</span><span class="o">.</span><span class="n">update_vel</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+            <span class="n">org</span><span class="o">.</span><span class="n">update_pos</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">organisms</span></code></pre></figure>
+
+<h3>Putting it All Together</h3>
+
+<p>With all the major components having been created the final code can now be assembled. There are a few smaller functions I neglected to include in the above writeup because they’re so simple reading about them would take longer than just reading the code directly. I ended up using <a target="_blank" href="https://matplotlib.org/">matplotlib</a> for displaying the simulation. This is far from the most efficient or elligant solution so by default the visualization is turned off. Lastly, pasting the entire code would be a bit redundent at this point so download/fork it from the GitHub repo (<a target="_blank" href="https://github.com/nathanrooy/evolving-simple-organisms/blob/master/organism_v1.py">here</a>).</p>
+
+<h3 id="results">Results</h3>
+
+<p>When you run the entire code, the output should be something similar to this:</p>
+
+<center><fig><img src="/images/2017-11-30/results.gif" /></fig></center>
+
+<p>I hope this was helpful. If anything seems unclear, please let me know. Thanks for reading!</p>
+
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#evolutionary optimization">#evolutionary optimization</a>
+    
+    <a style="color:#808080" href="/tags/#machine learning">#machine learning</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

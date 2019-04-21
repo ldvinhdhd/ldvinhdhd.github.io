@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>FiveThirtyEight: The Riddler (2016-July-08)</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-07-08/the-riddler/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="a collection of random projects">
+        <meta name="keywords" content="Python, tutorials, machine learning, deep learning, natural language processing, evolutionary optimization, urban design, mobility, geospatial analysis, data science, web scraping, Cincinnati">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="a collection of random projects">
+        <meta name="twitter:title" content="FiveThirtyEight: The Riddler (2016-July-08)">
+        <meta name="twitter:image" content="">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="a collection of random projects">
+        <meta property="og:image" content="">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="FiveThirtyEight: The Riddler (2016-July-08)">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-07-08/the-riddler/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>FiveThirtyEight: The Riddler (2016-July-08)</h1>
+        <p class="post-meta">July 8, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>I hate puzzles, but for some reason I find the Riddler from FiveThirtyEight more addicting than Flavor Blasted Goldfish. Anyway, I decided to post my solution for this week. Below is the question:</p>
+
+<blockquote>
+    The archvillain Laser Larry threatens to imminently zap Riddler Headquarters (which, seen from above, is shaped like a regular pentagon with no courtyard or other funny business). He plans to do it with a high-powered, vertical planar ray that will slice the building exactly in half by area, as seen from above. The building is quickly evacuated, but not before in-house mathematicians move the most sensitive riddling equipment out of the places in the building that have an extra high risk of getting zapped.
+    <br />
+    <br />
+    <i>Where are those places</i>, and how much riskier are they than the safest spots? (It’s fine to describe those places qualitatively.)
+</blockquote>
+
+<p>Doesn’t seem too difficult right? Well first things first, lets create a pentagon about the origin [0,0] and calculate its area.</p>
+
+<figure><center><img src="/images/2016-07-08/01-tiny.png" /></center></figure>
+
+<p>Using the length of one of its edges (a), we can calculate the total pentagon area using:</p>
+
+<equation class="has-jax">$$ area = \frac{1}{4}\sqrt{5(5+2\sqrt{5})}\,a^2 $$</equation>
+
+<p>Since every edge <equation class="has-jax">\( a=1.17557050458 \)</equation>, the total pentagon area is: <equation class="has-jax">\( area=2.37764129074 \)</equation>. Next we need to divide the perimeter into individual points where the laser will begin its cut. And because I don’t want to spend all day working this, I’m only going to choose a single edge. Doing it this way should allow me to simply rotate the results about the origin for a final solution.</p>
+
+<figure><center><img src="/images/2016-07-08/02-tiny.png" /></center></figure>
+
+<p>I only created twenty cut points, but this is only for visualization. I will bump that number up to several hundred for the final run.</p>
+
+<p>Next we need to figure out where on the other sides of the pentagon the laser must cross in order to split the pentagon into two equal area halves.</p>
+
+<figure><center><img src="/images/2016-07-08/03.gif" /></center></figure>
+
+<p>This was accomplished by creating a series of triangles and optimizing them using <a target="_blank" href="https://en.wikipedia.org/wiki/Powell%27s_method">Powell’s method</a>. The cost function for this optimization was simple; the area of the colored triangles must equal exactly one half of the total pentagon area. Below is a quick animation showing the optimization.</p>
+
+<figure><center><img src="/images/2016-07-08/04.gif" /></center></figure>
+
+<p>Now that the hard part is over, we can increase the number of cut points and lower the alpha channel.</p>
+
+<figure><center><img src="/images/2016-07-08/05-tiny.png" /></center></figure>
+
+<p>Rotating the results four more times about the origin results in the final solution seen below. The star pattern emerges because not every cut crosses the centroid of the pentagon.</p>
+
+<figure><center><img src="/images/2016-07-08/06-tiny.png" /></center></figure>
+
+<p>Darker areas represent locations where the laser is crossing more frequently. Therefore the equipment should be moved to the midpoint of each wall to minimize damage. I think…</p>
+
+<p>Below is the code:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   The Riddler - July 8th, 2016
+#   FiveThirtyEight
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span><span class="n">cos</span><span class="p">,</span><span class="n">radians</span><span class="p">,</span><span class="n">degrees</span><span class="p">,</span><span class="n">pi</span><span class="p">,</span><span class="n">sqrt</span>
+
+<span class="c1">#------------------------------------------------------------------------------+
+</span>
+<span class="c1"># create a pentagon centered @ [0,0]
+</span><span class="n">angles</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span><span class="mi">450</span><span class="p">,</span><span class="mi">72</span><span class="p">)]</span>
+
+<span class="n">pentagon_pts</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">angles</span><span class="p">)):</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">pentagon_pts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span>
+
+<span class="c1"># calculate total area based on length of one side
+</span><span class="n">a</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="nb">abs</span><span class="p">(</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>       <span class="c1"># length of bottom edge
+</span><span class="n">area_total</span><span class="o">=</span><span class="mf">0.25</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">5.0</span><span class="o">*</span><span class="p">(</span><span class="mf">5.0</span><span class="o">+</span><span class="mf">2.0</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)))</span><span class="o">*</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span>      <span class="c1"># total pentagon area
+</span>
+<span class="c1"># create perimeter points (on single edge only)
+</span><span class="n">num_cuts</span><span class="o">=</span><span class="mi">200</span>
+<span class="n">delta_x</span><span class="o">=</span><span class="p">(</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">num_cuts</span>
+<span class="n">delta_y</span><span class="o">=</span><span class="p">(</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="n">num_cuts</span>
+
+<span class="n">cut_pts_x</span><span class="o">=</span><span class="p">[</span><span class="n">delta_x</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_cuts</span><span class="p">)]</span>
+<span class="n">cut_pts_y</span><span class="o">=</span><span class="p">[</span><span class="n">delta_y</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_cuts</span><span class="p">)]</span>
+
+<span class="k">def</span> <span class="nf">triangleArea</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">x_a</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y_a</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x_b</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">y_b</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">x_c</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">y_c</span><span class="o">=</span><span class="n">points</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">area</span><span class="o">=</span><span class="mf">0.5</span><span class="o">*</span><span class="nb">abs</span><span class="p">((</span><span class="n">x_a</span><span class="o">-</span><span class="n">x_c</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y_b</span><span class="o">-</span><span class="n">y_a</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="n">x_a</span><span class="o">-</span><span class="n">x_b</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y_c</span><span class="o">-</span><span class="n">y_a</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">area</span>
+
+<span class="c1"># simulate laser cuts
+</span><span class="n">laser_cuts_x</span><span class="o">=</span><span class="p">[]</span>
+<span class="n">laser_cuts_y</span><span class="o">=</span><span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cut_pts_x</span><span class="p">)):</span>
+    <span class="n">triangle1_plot</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">triangle2_plot</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">triangle3_plot</span><span class="o">=</span><span class="p">[]</span>
+
+    <span class="c1"># cost function
+</span>    <span class="k">def</span> <span class="nf">testFunc</span><span class="p">(</span><span class="n">x0</span><span class="p">):</span>
+        <span class="c1">#--- triangle #1 ----------------------------------+
+</span>        <span class="n">area_tri_1</span><span class="o">=</span><span class="n">triangleArea</span><span class="p">([</span><span class="n">cut_pts_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                 <span class="n">cut_pts_y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="c1">#--- triangle #2 ----------------------------------+
+</span>        <span class="n">area_tri_2</span><span class="o">=</span><span class="n">triangleArea</span><span class="p">([</span><span class="n">cut_pts_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                 <span class="n">cut_pts_y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">x0</span><span class="p">,</span>
+                                 <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="c1"># check to make sure the new calculated piint is between the two bottom points
+</span>        <span class="k">if</span> <span class="n">x0</span><span class="o">&gt;=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">x0</span><span class="o">&lt;=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">((</span><span class="n">area_tri_1</span><span class="o">+</span><span class="n">area_tri_2</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">area_total</span><span class="p">))</span>
+
+        <span class="c1"># if the calculated point goes beyond the bottom right point, recalculate using three triangles
+</span>        <span class="k">if</span> <span class="n">x0</span><span class="o">&gt;</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+
+            <span class="c1">#--- recalculate triangle area #2 -------------+
+</span>            <span class="n">area_tri_2</span><span class="o">=</span><span class="n">triangleArea</span><span class="p">([</span><span class="n">cut_pts_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                     <span class="n">cut_pts_y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+
+            <span class="c1">#--- triangle #3 ------------------------------+
+</span>
+            <span class="c1"># calculate slope between points #3 and #4
+</span>            <span class="n">del_y</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">del_x</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            
+            <span class="n">slope</span><span class="o">=</span><span class="n">del_y</span><span class="o">/</span><span class="n">del_x</span>
+            <span class="n">y_c</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="p">((</span><span class="n">x0</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">slope</span><span class="p">)</span>
+
+            <span class="c1"># calculate new area for triangle #3
+</span>            <span class="n">area_tri_3</span><span class="o">=</span><span class="n">triangleArea</span><span class="p">([</span><span class="n">cut_pts_x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                     <span class="n">cut_pts_y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                     <span class="n">x0</span><span class="p">,</span>
+                                     <span class="n">y_c</span><span class="p">])</span>
+            
+            <span class="c1"># calculate new cost func
+</span>            <span class="n">func</span><span class="o">=</span><span class="nb">abs</span><span class="p">((</span><span class="n">area_tri_1</span><span class="o">+</span><span class="n">area_tri_2</span><span class="o">+</span><span class="n">area_tri_3</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">area_total</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">func</span>
+            
+        <span class="c1"># if point is less than the bottom right edge
+</span>        <span class="k">if</span> <span class="n">x0</span><span class="o">&lt;</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="c1"># optimize function to determine x_c
+</span>    <span class="n">xopt</span><span class="o">=</span><span class="n">minimize</span><span class="p">(</span><span class="n">testFunc</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s">'Powell'</span><span class="p">,</span><span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s">'disp'</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span><span class="s">'ftol'</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">,</span><span class="s">'maxiter'</span><span class="p">:</span><span class="mi">1000</span><span class="p">})</span>
+    <span class="k">print</span> <span class="n">xopt</span><span class="o">.</span><span class="n">x</span>
+
+    <span class="k">if</span> <span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">xopt</span><span class="o">.</span><span class="n">x</span> <span class="ow">and</span> <span class="n">xopt</span><span class="o">.</span><span class="n">x</span><span class="o">&lt;=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">y_c</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">xopt</span><span class="o">.</span><span class="n">x</span><span class="o">&gt;</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">del_y</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">del_x</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            
+        <span class="n">slope</span><span class="o">=</span><span class="n">del_y</span><span class="o">/</span><span class="n">del_x</span>
+        <span class="n">y_c</span><span class="o">=</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="p">((</span><span class="n">xopt</span><span class="o">.</span><span class="n">x</span><span class="o">-</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">slope</span><span class="p">)</span>
+    
+    <span class="c1"># save results
+</span>    <span class="n">laser_cuts_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xopt</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">laser_cuts_y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_c</span><span class="p">)</span>
+
+<span class="c1"># rotate results 72 degrees, four times about orgin [0,0]
+</span><span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">theta</span><span class="p">):</span>
+    <span class="n">x_new</span><span class="o">=</span><span class="n">x</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span><span class="o">-</span><span class="n">y</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+    <span class="n">y_new</span><span class="o">=</span><span class="n">x</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span><span class="o">+</span><span class="n">y</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">x_new</span><span class="p">,</span><span class="n">y_new</span>
+
+<span class="n">laserCuts_start_x_new</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">cut_pts_x</span><span class="p">)</span>
+<span class="n">laserCuts_start_y_new</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">cut_pts_y</span><span class="p">)</span>
+<span class="n">laserCuts_end_x_new</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">laser_cuts_x</span><span class="p">)</span>
+<span class="n">laserCuts_end_y_new</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">laser_cuts_y</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">theta</span><span class="o">=</span><span class="n">i</span><span class="o">*</span><span class="mi">72</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">laser_cuts_x</span><span class="p">)):</span>
+        <span class="n">x_1</span><span class="p">,</span><span class="n">y_1</span><span class="o">=</span><span class="n">rotate</span><span class="p">(</span><span class="n">cut_pts_x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">cut_pts_y</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">x_2</span><span class="p">,</span><span class="n">y_2</span><span class="o">=</span><span class="n">rotate</span><span class="p">(</span><span class="n">laser_cuts_x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">laser_cuts_y</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">theta</span><span class="p">)</span>
+
+        <span class="n">laserCuts_start_x_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_1</span><span class="p">)</span>
+        <span class="n">laserCuts_start_y_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_1</span><span class="p">)</span>
+        <span class="n">laserCuts_end_x_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_2</span><span class="p">)</span>
+        <span class="n">laserCuts_end_y_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_2</span><span class="p">)</span>
+
+<span class="c1">#--- PLOTTING -----------------------------------------------------------------+
+</span>        
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">laserCuts_start_x_new</span><span class="p">)):</span>
+    <span class="n">x_new</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">y_new</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">x_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">laserCuts_start_x_new</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">x_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">laserCuts_end_x_new</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">y_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">laserCuts_start_y_new</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">y_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">laserCuts_end_y_new</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span><span class="n">y_new</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    
+<span class="n">pentagon_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pentagon_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">pentagon_pts</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="s">'k'</span><span class="p">)</span>                   <span class="c1"># plot pentagon outline
+</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s">'ro'</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>     <span class="c1"># plot point at origin
+</span><span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s">'equal'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mf">1.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">1.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">])</span>
+<span class="c1">##plt.savefig('06-final.png',dpi=72)
+</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#--- END ----------------------------------------------------------------------+</span></code></pre></figure>
+
+<hr style="margin-bottom:2em; margin-top:3em;" />
+
+<h1 class="entry-title" style="color:#202020">Update: 2016-July-17</h1>
+
+<p>Holy shit, <a target="_blank" style="font-weight: 800" href="http://fivethirtyeight.com/features/how-long-will-you-be-stuck-playing-this-bar-game/">I won!</a></p>
+
+<center><img style="border:2px solid #808080; margin-bottom:2em;" src="/images/2016-07-08/riddler-win-crop-tiny.png" /></center>
+
+<p>Additionally, I added the code to my GitHub which can be download (<a target="_blank" href="https://github.com/nathanrooy/The-Riddler-FiveThirtyEight/blob/master/2016-07-08/main.py">here</a>).</p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#fivethirtyeight">#fivethirtyeight</a>
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

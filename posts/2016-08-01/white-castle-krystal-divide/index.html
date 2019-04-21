@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>The White Castle/Krystal Divide</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-08-01/white-castle-krystal-divide/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="mapping out the White Castle vs. Krystal divide">
+        <meta name="keywords" content="white castle, krystal, python, qgis, web scraping, mapping">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="mapping out the White Castle vs. Krystal divide">
+        <meta name="twitter:title" content="The White Castle/Krystal Divide">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2016-08-01/feature-image-tiny.png">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="mapping out the White Castle vs. Krystal divide">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2016-08-01/feature-image-tiny.png">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="The White Castle/Krystal Divide">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-08-01/white-castle-krystal-divide/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>The White Castle/Krystal Divide</h1>
+        <p class="post-meta">August 1, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>Ahh White Castle. I’ve had a love/hate relationship with this place since college. Sometimes after a solid night of pillaging and conquering, nothing satisfies your hunger like those little square, steamed devil burgers. Give me a ten sack and life is good. Add in some tots and a side of ranch? Game over. Good night. As for Krystal, I had it once on the way to Panama for Spring Break. It was alright… And that’s the end of that story. Anyway, I always had this vague idea that White Castle was only in the north and Krystal were in the south so I decided to map it out.</p>
+
+<center><a target="_blank" href="/images/2016-08-01/01.png"><img src="/images/2016-08-01/01.png" /></a></center>
+
+<p>Looks like my initial assumption was fairly correct. Krystal does seem to be the southern alternative to White Castle.</p>
+
+<p><em>Notes:</em></p>
+
+<p><em>The White Castle and Krystal locations were scrapped off Google Maps using a Python script I wrote and dumped into an SQL database. This resulted in 354 Krystal locations and 405 White Castle locations. From here, I imported the latitude/longitude locations into QGIS as a CSV layer along with the county level base map from the <a target="_blank" href="https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html">U.S. Census</a>. I then created the <a target="_blank" href="https://en.wikipedia.org/wiki/Voronoi_diagram">voronoi</a> and finished the map in Photoshop. If you’re wondering why their are two different shades of blue and yellow it’s because the states that actually include a White Castle/Krystal restaurant are the lighter shade. The darker shade of blue/yellow are reserved for states that are merely within a White Castle/Krystal region but don’t actually include a White Castle/Krystal restaurant. There is a single <a target="_blank" href="http://www.whitecastlevegas.com/">White Castle</a> in Las Vegas, hence Nevada’s  lighter shade of blue.</em></p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#qgis">#qgis</a>
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#web scraping">#web scraping</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

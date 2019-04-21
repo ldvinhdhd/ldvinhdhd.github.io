@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Calculate the Distance Between Two GPS Points with Python (Vincenty’s Inverse Formula)</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-12-18/vincenty-formula-with-python/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="Vincenty's inverse formula provides an accurate method for calcualting the distance between two latitude/longitude pairs. Learn how to implement your own with Python">
+        <meta name="keywords" content="python, vincenty, latitude, longitude, gps, distance, geospatial analysis">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="Vincenty's inverse formula provides an accurate method for calcualting the distance between two latitude/longitude pairs. Learn how to implement your own with Python">
+        <meta name="twitter:title" content="Calculate the Distance Between Two GPS Points with Python (Vincenty’s Inverse Formula)">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2016-12-18/feature-image-tiny.jpg">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="Vincenty's inverse formula provides an accurate method for calcualting the distance between two latitude/longitude pairs. Learn how to implement your own with Python">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2016-12-18/feature-image-tiny.jpg">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Calculate the Distance Between Two GPS Points with Python (Vincenty’s Inverse Formula)">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-12-18/vincenty-formula-with-python/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Calculate the Distance Between Two GPS Points with Python (Vincenty’s Inverse Formula)</h1>
+        <p class="post-meta">December 14, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p class="TLDR"><strong>TL;DR</strong> - Vincenty's inverse formula provides an accurate method for calcualting the distance between two latitude/longitude pairs. Learn how to implement your own with Python</p>
+
+<p>Recently the work I have been doing requires a higher degree of accuracy than which the <a target="_blank" href="http://localhost:4000/posts/2016-09-07/haversine-with-python/">haversine method</a> I was using could provide. This prompted me to implement a Python version of the <a target="_blank" href="https://en.wikipedia.org/wiki/Vincenty's_formulae">Vincenty’s inverse formula</a>. Unlike the <a target="_blank" href="https://en.wikipedia.org/wiki/Haversine_formula">Haversine</a> method (which I posted about previously) of directly calculating the <a target="_blank" href="https://en.wikipedia.org/wiki/Great-circle_distance">great-circle distance</a> between two points on a perfectly spherical Earth, Vincenty’s formulae is an iterative method which more realistically assumes Earth as an <a target="_blank" href="https://en.wikipedia.org/wiki/Spheroid">oblate spheroid</a>.</p>
+
+<p>Before proceeding further, several values need to be defined:</p>
+
+<table style="width:100%">
+    <col width="40%" />
+    <col width="60%" />
+  <thead>
+    <tr>
+      <th><strong>Variable</strong></th>
+      <th><strong>Definition</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><equation class="has-jax">\( a = 6378137.0 \)</equation></td>
+        <td>length of semi-major axis of the ellipsoid  aka radius of the equator in meters (<a target="_blank" href="https://en.wikipedia.org/wiki/World_Geodetic_System">WGS-84</a>)</td>
+    </tr>
+      
+    <tr>
+        <td>
+            <equation class="has-jax">\( f = 1 / 298.257223563 \)</equation>
+        </td>
+        
+        <td>
+            <a target="_blank" href="https://en.wikipedia.org/wiki/Flattening">flattening</a> of the ellipsoid (<a target="_blank" href="https://en.wikipedia.org/wiki/World_Geodetic_System">WGS-84</a>)
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            <equation class="has-jax">\( b = \left ( 1 - f \right ) a \)</equation>
+        </td>
+        
+        <td>
+            length of semi-minor axis of the ellipsoid (radius at the poles, 6356752.314245 meters in <a target="_blank" href="https://en.wikipedia.org/wiki/World_Geodetic_System">WGS-84</a>)
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <equation class="has-jax">\( \phi_1, \phi_2 \)</equation>
+        </td>
+        
+        <td>
+            latitude of the points
+        </td>
+    </tr>
+  
+    <tr>
+        <td>
+            <equation class="has-jax">\( U_1 = \arctan \left [ \left ( 1 - f \right ) \tan \phi_1 \right ] \)</equation>
+        </td>
+        
+        <td>
+            reduced latitude (latitude on the auxiliary sphere)
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            <equation class="has-jax">\( U_2 = \arctan \left [ \left ( 1 - f \right ) \tan \phi_2 \right ] \)</equation>
+        </td>
+        
+        <td>
+            reduced latitude (latitude on the auxiliary sphere)
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <equation class="has-jax">\( L = L_2 - L_1 \)</equation>
+        </td>
+        
+        <td>
+            difference in longitude of two points
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <equation class="has-jax">\( \lambda_1, \lambda_2 \)</equation>
+        </td>
+        
+        <td>
+            longitude of the points on the auxiliary sphere
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <equation class="has-jax">\( \alpha_1, \alpha_2 \)</equation>
+        </td>
+        
+        <td>
+            forward azimuths at the points
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            <equation class="has-jax">\( \alpha \)</equation>
+        </td>
+        
+        <td>
+            azimuth at the equator
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            <equation class="has-jax">\( s \)</equation>
+        </td>
+        
+        <td>
+            ellipsoidal distance between the two points
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            <equation class="has-jax">\( \sigma \)</equation>
+        </td>
+        
+        <td>
+            arc length between points on the auxiliary sphere
+        </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Using the values defined above, and the eight equations below, the process of iterating towards a solution can begin. Starting with the first equation on top, sequentially progress towards the last equation at the bottom where the output is <equation class="has-jax">\( \lambda \)</equation>. Once through the first iteration, simply use this newly calculated value of <equation class="has-jax">\( \lambda \)</equation> and dump it back into the first equation and repeat the process. The end game here is to minimize the value of <equation class="has-jax">\( \lambda \)</equation>.</p>
+
+<equation class="has-jax">$$ \sin \sigma = \sqrt{(\cos U_2 \sin\lambda)^2 + (\cos U_1 \sin U_2 - \sin U_1 \cos U_2 \cos\lambda)^2}$$</equation>
+
+<equation class="has-jax">$$ \cos \sigma = \sin U_1 \sin U_2 + \cos U_1 \cos U_2 \cos \lambda $$</equation>
+
+<equation class="has-jax">$$ \sigma = \arctan \frac{\sin \sigma}{\cos \sigma} $$</equation>
+
+<equation class="has-jax">$$ \sin \alpha = \frac{ \cos U_1 \cos U_2 \sin \lambda }{ \sin \sigma }$$</equation>
+
+<equation class="has-jax">$$ \cos^2 \alpha = 1 - \sin^2 \alpha $$</equation>
+
+<equation class="has-jax">$$ \cos \left( 2 \sigma_m \right) = \cos \sigma - \frac{2 \sin U_1 sin U_2 }{ \cos^2 \alpha }$$</equation>
+
+<equation class="has-jax">$$ C = \frac{f}{16} \cos^2 \alpha \left[ 4 + f \left( 4 - 3 \cos^2 \alpha \right) \right]$$</equation>
+
+<equation class="has-jax">$$ \lambda = L + (1 - C) f \sin \alpha \left \{ \sigma + C \sin \sigma \left [ \cos \left ( 2 \sigma_m  \right) + C \cos \sigma \left ( -1 + 2\cos^2 \left ( 2 \sigma_m \right ) \right ) \right ] \right \} $$</equation>
+
+<p>When the difference between the current value of <equation class="has-jax">\( \lambda \)</equation> and the value of <equation class="has-jax">\( \lambda \)</equation> from the previous iteration is less than the convergence tolerance, we can move on to the final stage (a convergence tolerance of 10e-12 translates to an accuracy of approximately 0.06mm).</p>
+
+<equation class="has-jax">$$ u^2 = \cos^2 \alpha \frac{a^2 - b^2}{b^2} $$</equation>
+
+<equation class="has-jax">$$ A = 1 + \frac{u^2}{16384} \left \{ 4096 + u^2 \left [ -768 + u^2 \left ( 320 - 175 u^2 \right ) \right ] \right \} $$</equation>
+
+<equation class="has-jax">$$ B = \frac{u^2}{1024} \left \{ 256 + u^2 \left [ -128 + u^2 \left ( 74 - 47 u^2 \right ) \right ] \right \} $$</equation>
+
+<equation class="has-jax">$$ \Delta \sigma = B \sin \sigma \left \{ \cos \left ( 2 \sigma_m \right ) + \frac{1}{4} B \left [ \cos \sigma \left ( -1 + 2 \cos^2 \left ( 2 \sigma_m \right ) \right ) - \frac{1}{6} B \cos \left ( 2 \sigma_m \right ) \left ( -3 + 4 \sin^2 \sigma \right ) \left ( -3 + 4 \cos^2 \left ( 2 \sigma_m \right ) \right ) \right ] \right \} $$</equation>
+
+<equation class="has-jax">$$ s = b A \left ( \sigma - \Delta \sigma \right ) $$</equation>
+
+<equation class="has-jax">$$ \alpha_1 = \arctan \left ( \frac{ \cos U_2 \sin \lambda }{ \cos U_1 \sin U_2 - \sin U_1 \cos U_2 \cos \lambda } \right ) $$</equation>
+
+<equation class="has-jax">$$ \alpha_2 = \arctan \left ( \frac{ \cos U_1 \sin \lambda }{ - \sin U_1 \cos U_2 + \cos U_1 \sin U_2 \cos \lambda } \right ) $$</equation>
+
+<p>Below is the Python implementation of the above equations. Note, I included a maximum number of iterations (maxIter=200).</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   2016-SEP-30
+#   Solve the inverse Vincenty's formulae
+#   https://en.wikipedia.org/wiki/Vincenty%27s_formulae
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">atan</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">atan2</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">cos</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">tan</span>
+
+<span class="c1">#--- MAIN ---------------------------------------------------------------------+
+</span>
+<span class="k">class</span> <span class="nc">vincenty_inverse</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coord1</span><span class="p">,</span><span class="n">coord2</span><span class="p">,</span><span class="n">maxIter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span><span class="n">tol</span><span class="o">=</span><span class="mi">10</span><span class="o">**-</span><span class="mi">12</span><span class="p">):</span>
+
+        <span class="c1">#--- CONSTANTS ------------------------------------+
+</span>        
+        <span class="n">a</span><span class="o">=</span><span class="mf">6378137.0</span>                             <span class="c1"># radius at equator in meters (WGS-84)
+</span>        <span class="n">f</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mf">298.257223563</span>                       <span class="c1"># flattening of the ellipsoid (WGS-84)
+</span>        <span class="n">b</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">*</span><span class="n">a</span>
+
+        <span class="n">phi_1</span><span class="p">,</span><span class="n">L_1</span><span class="p">,</span><span class="o">=</span><span class="n">coord1</span>                       <span class="c1"># (lat=L_?,lon=phi_?)
+</span>        <span class="n">phi_2</span><span class="p">,</span><span class="n">L_2</span><span class="p">,</span><span class="o">=</span><span class="n">coord2</span>                  
+
+        <span class="n">u_1</span><span class="o">=</span><span class="n">atan</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">*</span><span class="n">tan</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">phi_1</span><span class="p">)))</span>
+        <span class="n">u_2</span><span class="o">=</span><span class="n">atan</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">*</span><span class="n">tan</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">phi_2</span><span class="p">)))</span>
+
+        <span class="n">L</span><span class="o">=</span><span class="n">radians</span><span class="p">(</span><span class="n">L_2</span><span class="o">-</span><span class="n">L_1</span><span class="p">)</span>
+
+        <span class="n">Lambda</span><span class="o">=</span><span class="n">L</span>                                <span class="c1"># set initial value of lambda to L
+</span>
+        <span class="n">sin_u1</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">u_1</span><span class="p">)</span>
+        <span class="n">cos_u1</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">u_1</span><span class="p">)</span>
+        <span class="n">sin_u2</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">u_2</span><span class="p">)</span>
+        <span class="n">cos_u2</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">u_2</span><span class="p">)</span>
+
+        <span class="c1">#--- BEGIN ITERATIONS -----------------------------+
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">iters</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">maxIter</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iters</span><span class="o">+=</span><span class="mi">1</span>
+            
+            <span class="n">cos_lambda</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">Lambda</span><span class="p">)</span>
+            <span class="n">sin_lambda</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">Lambda</span><span class="p">)</span>
+            <span class="n">sin_sigma</span><span class="o">=</span><span class="n">sqrt</span><span class="p">((</span><span class="n">cos_u2</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">Lambda</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">cos_u1</span><span class="o">*</span><span class="n">sin_u2</span><span class="o">-</span><span class="n">sin_u1</span><span class="o">*</span><span class="n">cos_u2</span><span class="o">*</span><span class="n">cos_lambda</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">cos_sigma</span><span class="o">=</span><span class="n">sin_u1</span><span class="o">*</span><span class="n">sin_u2</span><span class="o">+</span><span class="n">cos_u1</span><span class="o">*</span><span class="n">cos_u2</span><span class="o">*</span><span class="n">cos_lambda</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="n">atan2</span><span class="p">(</span><span class="n">sin_sigma</span><span class="p">,</span><span class="n">cos_sigma</span><span class="p">)</span>
+            <span class="n">sin_alpha</span><span class="o">=</span><span class="p">(</span><span class="n">cos_u1</span><span class="o">*</span><span class="n">cos_u2</span><span class="o">*</span><span class="n">sin_lambda</span><span class="p">)</span><span class="o">/</span><span class="n">sin_sigma</span>
+            <span class="n">cos_sq_alpha</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">sin_alpha</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">cos2_sigma_m</span><span class="o">=</span><span class="n">cos_sigma</span><span class="o">-</span><span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">sin_u1</span><span class="o">*</span><span class="n">sin_u2</span><span class="p">)</span><span class="o">/</span><span class="n">cos_sq_alpha</span><span class="p">)</span>
+            <span class="n">C</span><span class="o">=</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="mi">16</span><span class="p">)</span><span class="o">*</span><span class="n">cos_sq_alpha</span><span class="o">*</span><span class="p">(</span><span class="mi">4</span><span class="o">+</span><span class="n">f</span><span class="o">*</span><span class="p">(</span><span class="mi">4</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">cos_sq_alpha</span><span class="p">))</span>
+            <span class="n">Lambda_prev</span><span class="o">=</span><span class="n">Lambda</span>
+            <span class="n">Lambda</span><span class="o">=</span><span class="n">L</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">C</span><span class="p">)</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">sin_alpha</span><span class="o">*</span><span class="p">(</span><span class="n">sigma</span><span class="o">+</span><span class="n">C</span><span class="o">*</span><span class="n">sin_sigma</span><span class="o">*</span><span class="p">(</span><span class="n">cos2_sigma_m</span><span class="o">+</span><span class="n">C</span><span class="o">*</span><span class="n">cos_sigma</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">cos2_sigma_m</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+
+            <span class="c1"># successful convergence
+</span>            <span class="n">diff</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">Lambda_prev</span><span class="o">-</span><span class="n">Lambda</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">diff</span><span class="o">&lt;=</span><span class="n">tol</span><span class="p">:</span>
+                <span class="k">break</span>
+            
+        <span class="n">u_sq</span><span class="o">=</span><span class="n">cos_sq_alpha</span><span class="o">*</span><span class="p">((</span><span class="n">a</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">A</span><span class="o">=</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="n">u_sq</span><span class="o">/</span><span class="mi">16384</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">4096</span><span class="o">+</span><span class="n">u_sq</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">768</span><span class="o">+</span><span class="n">u_sq</span><span class="o">*</span><span class="p">(</span><span class="mi">320</span><span class="o">-</span><span class="mi">175</span><span class="o">*</span><span class="n">u_sq</span><span class="p">)))</span>
+        <span class="n">B</span><span class="o">=</span><span class="p">(</span><span class="n">u_sq</span><span class="o">/</span><span class="mi">1024</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">256</span><span class="o">+</span><span class="n">u_sq</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="o">+</span><span class="n">u_sq</span><span class="o">*</span><span class="p">(</span><span class="mi">74</span><span class="o">-</span><span class="mi">47</span><span class="o">*</span><span class="n">u_sq</span><span class="p">)))</span>
+        <span class="n">delta_sig</span><span class="o">=</span><span class="n">B</span><span class="o">*</span><span class="n">sin_sigma</span><span class="o">*</span><span class="p">(</span><span class="n">cos2_sigma_m</span><span class="o">+</span><span class="mf">0.25</span><span class="o">*</span><span class="n">B</span><span class="o">*</span><span class="p">(</span><span class="n">cos_sigma</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">cos2_sigma_m</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span><span class="o">*</span><span class="n">B</span><span class="o">*</span><span class="n">cos2_sigma_m</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">sin_sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">cos2_sigma_m</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">=</span><span class="n">b</span><span class="o">*</span><span class="n">A</span><span class="o">*</span><span class="p">(</span><span class="n">sigma</span><span class="o">-</span><span class="n">delta_sig</span><span class="p">)</span>                 <span class="c1"># output distance in meters     
+</span>        <span class="c1">#self.km=self.meters/1000                    # output distance in kilometers
+</span>        <span class="c1">#self.mm=self.meters*1000                    # output distance in millimeters
+</span>        <span class="c1">#self.miles=self.meters*0.000621371          # output distance in miles
+</span>        <span class="c1">#self.n_miles=self.miles*(6080.20/5280)      # output distance in nautical miles
+</span>        <span class="c1">#self.ft=self.miles*5280                     # output distance in feet
+</span>        <span class="c1">#self.inches=self.feet*12                    # output distance in inches
+</span>        <span class="c1">#self.yards=self.feet/3                      # output distance in yards
+</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__vincenty_inverse__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+    </code></pre></figure>
+
+<p>Example usage:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">vincenty</span> <span class="kn">import</span> <span class="n">vincenty_inverse</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">vincenty_inverse</span><span class="p">([</span><span class="mf">39.152501</span><span class="p">,</span><span class="o">-</span><span class="mf">84.412977</span><span class="p">],[</span><span class="mf">39.152505</span><span class="p">,</span><span class="o">-</span><span class="mf">84.412946</span><span class="p">])</span><span class="o">.</span><span class="n">m</span>
+<span class="mf">2.7161912585815897</span></code></pre></figure>
+
+<p>And that’s it! Not too difficult right? The final code can be found on my GitHub (<a target="_blank" href="https://github.com/nathanrooy/spatial-analysis/blob/master/vincenty-2016-09-22.py">here</a>).</p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#geospatial analysis">#geospatial analysis</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Dog Ownership in Cincinnati</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-03-12/dog-ownership-in-cincinnati/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="A data centric look at dog ownership in Cincinnati and Hamilton County.">
+        <meta name="keywords" content="cincinnati, dogs, dog ownership, geospatial analysis, web scraping, python qgis">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="A data centric look at dog ownership in Cincinnati and Hamilton County.">
+        <meta name="twitter:title" content="Dog Ownership in Cincinnati">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2016-03-12/feature-image.png">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="A data centric look at dog ownership in Cincinnati and Hamilton County.">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2016-03-12/feature-image.png">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Dog Ownership in Cincinnati">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-03-12/dog-ownership-in-cincinnati/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Dog Ownership in Cincinnati</h1>
+        <p class="post-meta">March 12, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>In Cincinnati, there’s a pomeranian named Michelle Obama. There’s also a Beagle named Sarah Palin, a German Shepherd named Obwan Kenobi, and a Pit Bull Terrier named Beyoncé. Actually there’s a total of six dogs named Beyoncé in Cincinnati. Bart Simpson? Check. How about Bruno Mars? Several. Willie Nelson, Willy Wonka, and Winston Churchill? Yes, yes, and yes. How about a Chihuahua named Taco Bell? Yes, face palm… Applesauce, Sriracha, Tabasco, Trumpet, Trombone, Toto, Tripod, Shampoo, and Tony Montana? Yes to all of those! Okay, what about Zombie Wolf? You bet! The creativity of Cincinnati’s dog naming is staggering.</p>
+
+<p>So last month, I wrote a quick <a target="_blank" href="https://www.python.org/">Python</a> script to scrape the Hamilton County Dog Licensing database from 2006 to the end of 2015 and ended up with 457,601 dog license registrations. But since dogs are registered yearly, there are only 137,631 unique dogs registered.</p>
+
+<p>Below is a heat map I generated including all of the Hamilton County data.</p>
+
+<center><a target="_blank" href="/images/2016-03-12/01.jpg"><img src="/images/2016-03-12/01.jpg" /></a></center>
+
+<p>Since the area within Hamilton County that’s outside of Cincinnati is a wasteland of suburban nothingness I went ahead and made another heat map of just the good stuff.</p>
+
+<center><a target="_blank" href="/images/2016-03-12/02.jpg"><img src="/images/2016-03-12/02.jpg" /></a></center>
+
+<p>Looks like dog owners prefer Northside. Actually, that’s not entirely correct. Northside does have a high dog ownership concentration near its central business district but only contains 4.55% of Cincinnati based dog owners. Additionally, since Northside includes more land area than just its central business district, it comes in second place with a dog ownership density of 9.52 dog owners per acre. Westwood claims the title for most dog owners in Cincinnati with 9.66%. West Price Hill on the other hand has the highest density of dog owners with 11.1 dog owners per acre. Below, two plots show which areas have the highest number of dog owners and which areas have the highest density of dog owners. The plots below only include data for dog owners residing within city limits. Therefore, a place like Hyde Park represents 5.16% of Cincinnati dog owners with a density of 7.36 dog owners per acre. Clifton contains 2.93% of Cincinnati dog owners with a density of 5.36 owners/acre. Over-The-Rhine with its relatively small footprint only contains 1.07% of Cincinnati dog owners but has a density of 8.28 dog owners/acre.</p>
+
+<figure><center><img src="/images/2016-03-12/03-tiny.png" /></center></figure>
+
+<p>I’m not sure what the dog version of the “crazy cat lady” is but below is the distribution of dog ownership in Hamilton County. Amongst all dog owners, 61.51% own only a single dog while 3.43% of dog owners own five or more dogs.</p>
+
+<figure><center><img src="/images/2016-03-12/04-tiny.png" /></center></figure>
+
+<p>Among all the dog registrations, below are the top 15 breeds. Labrador Retrievers get the top spot by a wide margin.</p>
+
+<figure><center><img src="/images/2016-03-12/05-tiny.png" /></center></figure>
+
+<p>Below are the top 30 dog names registered in Hamilton County Ohio. So the next time you see a dog and you don’t know its name, start with Max, Buddy, and Lucy. You’ll have at least a 1% chance of getting it right!</p>
+
+<figure><center><img src="/images/2016-03-12/06-tiny.png" /></center></figure>
+
+<p>One thing I noticed early on was how many people named their dog after other animals. Obviously “Bearcat” is an acceptable name, but Tuna? Turtle? Zebra? All are registered dog names here in Cincy. Along with those are Big Moose, Shamoo, Kitty, Kitty Kat, and Bearcat Moose. Yes, someone in Cincinnati bought a dog then named it Kitty Kat. SMH…</p>
+
+<p>Another notable naming variation were the forms of “dog” as in Dog, Doggie, and Doggie Dog. Which leads us into Snoop, Snoop D, Snoop Dawg, Snoop Dog, Snooper, Snoopers, Snoopie, Snoops, and Snoopy. We can keep the rap artist theme going with Dr. Dre, Drake, and 2 Pac. This inevitably brings up the question; what are the <strike>worst</strike> “questionable” names? How about:</p>
+
+<ul class="ul-style-b">
+    <li>Adolf Hitler (American Bulldog Mix)</li>
+    <li>Nazi (American Bulldog)</li>
+    <li>Jessica Simpson (Chihuahua)</li>
+    <li>Ashlee Simpson (Chihuahua)</li>
+    <li>Shit Head (Labrador Retriever)</li>
+    <li>Shitball (American Pit Bull Terrier)</li>
+    <li>Stupid (Dalmatian)</li>
+</ul>
+
+<p>On the flip side of that, what are the best names you ask? Well since everybody would answer that question differently, here are some names that I thought were pretty good. They’re definitely original at the very least…</p>
+
+<ul class="ul-style-b">
+    <li>Vista The Dancing Bear (Golden Retriever Mix)</li>
+    <li>Will Turner The Pirate (Standard Poodle)</li>
+    <li>Major Storm Warning (Golden Retriever)</li>
+    <li>Yukon Cornelius (Husky Mix)</li>
+    <li>Sweet Potato Belize (Jack Russell Terrier)</li>
+    <li>Bro (Dachshund Mix)</li>
+    <li>Czar vodka Collins (Siberian Husky)</li>
+    <li>Dinkosaurus-Rex (Dachshund)</li>
+</ul>
+
+<p>Yes, someone actually named their dog “Bro”, “Major Storm Warning” and “Dinkosaurus-Rex”. Cincinnati, please don’t ever stop being amazing!</p>
+
+<p><em>Notes:</em></p>
+
+<p><em>I wrote a <a target="_blank" href="https://www.python.org/">Python</a> script to scrape all the dog registrations from the <a target="_blank" href="http://www.hamiltoncountyauditor.org/dogs.asp">Hamilton County Auditors Dog Registration</a> web page and into an SQL database. I ended up needing the <a target="_blank" href="http://docs.python-requests.org/en/master/">Python Requests</a> library to pass information through the web forms to the server along with the usual boat load of regular expressions. Once I acquired all the registrations I had to convert the address to latitude and longitude coordinates. This was by far the most annoying and time consuming process. The <a target="_blank" href="https://developers.google.com/maps/documentation/geocoding/intro">Google Maps Geocoding API</a> (which is awesome!) limits free users to 2500 requests per day which wasn’t enough for this project. I ended up writing another Python script that passed the addresses from my laptop to (<a target="_blank" href="http://www.findlatitudeandlongitude.com/batch-geocode/#.WCeCQbWVvQo">this</a>) third party web site one at a time. This same script then retrieved the lat/lon coordinates once converted and updated the original SQL database with the new information. I implemented a 15 second delay between addresses to minimize server loading. After all the lat/lon coordinates were acquired I could dump them into QGIS and create the heat maps. I used the <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMaps</a> layer for the roads. Lastly, I used <a target="_blank" href="http://matplotlib.org/">matplotlib</a> and <a target="_blank" href="http://seaborn.pydata.org/">Seaborn</a> to create the bar charts.</em></p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#cincinnati">#cincinnati</a>
+    
+    <a style="color:#808080" href="/tags/#web scraping">#web scraping</a>
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#qgis">#qgis</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

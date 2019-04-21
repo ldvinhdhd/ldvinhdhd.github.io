@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>The Age of Cincinnati</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2017-02-15/the-age-of-cincinnati/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="The age of every building in Cincinnati and Hamilton County mapped out">
+        <meta name="keywords" content="cincinnati, age of cincinnati, python, qgis, urban planning, urban design, web scraping">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="The age of every building in Cincinnati and Hamilton County mapped out">
+        <meta name="twitter:title" content="The Age of Cincinnati">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2017-02-15/og-image-300x200.png">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="The age of every building in Cincinnati and Hamilton County mapped out">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2017-02-15/og-image-300x200.png">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="The Age of Cincinnati">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2017-02-15/the-age-of-cincinnati/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>The Age of Cincinnati</h1>
+        <p class="post-meta">February 15, 2017</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>I’ve always been really impressed by those “age of…” maps that I see from time to time on the internet (see <a target="_blank" href="http://code.waag.org/buildings/">here</a>, <a target="_blank" href="http://labratrevenge.com/pdx/">here</a>, and <a target="_blank" href="http://cityhubla.github.io/LA_Building_Age/">here</a>) so I thought I would give it a go this winter while I had a little free time. Between web scraping and actual map creation it ended up taking a little over a month to finish.</p>
+
+<p>Click (<a target="_blank" href="/pages/2017-02-15-the-age-of-cincinnati-full-screen.html">here</a>) to launch a full screen version of the map in a new window.</p>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+
+<center><div id="mapid" style="width: 100%; height: 400px;"></div></center>
+
+<script>
+	var mymap = L.map('mapid').setView([39.1058,-84.5215], 13);
+    
+    L.tileLayer('https://api.mapbox.com/styles/v1/nathanrooy/cizyeqgcc004m2ssj7fv4ivwa/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibmF0aGFucm9veSIsImEiOiJjaXo4eDhjd3UwMTIwMzJtbnJremZmeTRpIn0.DzrR916YQnKzrYEYXlPHtQ',{
+		maxZoom: 18,
+        minZoom: 13,
+		attribution:
+			'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+		id: 'mapbox.streets'
+	}).addTo(mymap);
+
+</script>
+
+<p><br /></p>
+
+<center><figure><img src="/images/2017-02-15/legend.png" /></figure></center>
+
+<h3>Color Gradient Design and Housing Analysis</h3>
+
+<p>I created the color gradient to highlight the different eras of housing development in the region. Beginning with the earliest 1800’s up until around 1900, depicted here by shades of green and cyan. These areas represent the organically evolved, <a target="_blank" href="http://queencitydiscovery.blogspot.com/">fine-grained</a>, quality built (brick/stone), and highly walkable traditional neighborhoods. Geographically, <a target="_blank" href="http://www.urbancincy.com/">these neighborhoods</a> make up the downtown basin area, Mt. Adams, Clifton, Northside, <a target="_blank" href="https://youtu.be/4L5X06Hafx0">Walnut Hills</a>, Mt. Auburn, and the central business district areas of O’Bryonville and Hyde Park. These tend to be the architecturally rich, sought after <a target="_blank" href="http://diggingcincinnati.blogspot.com/">historic areas</a> and early streetcar suburbs. Although the streetcars of <a target="_blank" href="https://handeaux.tumblr.com/">yesteryear</a> no longer run, using a combination of the bus, Uber/Lyft, and biking, car ownership becomes <a target="_blank" href="https://youtu.be/pKCI3EA1uAY">completely unnecessary</a>. These neighborhoods are prized for their <a target="_blank" href="http://5chw4r7z.blogspot.com/">high levels of social capital</a> and <a target="_blank" href="https://cincyopolis.wordpress.com/">community engagement</a>.<sup id="fnref:fn1"><a href="#fn:fn1" class="footnote">1</a></sup></p>
+
+<center><figure><img src="/images/2017-02-15/01.png" /></figure></center>
+
+<p>Progressing forward in time we enter the shades of blue, pink and magenta. This represents the massive (see chart above) suburban expansion of post-World War II America which was facilitated by massive government subsidies for whites, redlining, and the automobile.<sup id="fnref:fn5"><a href="#fn:fn5" class="footnote">2</a></sup> This is where building quality, material choice, and architectural originality began to decline and the term “cookie-cutter” home was created. Because many of these neighborhoods were built around the automobile, car dependence starts to become an issue in these areas.<sup id="fnref:fn8"><a href="#fn:fn8" class="footnote">3</a></sup> Much of the traffic congestion and subsequent pollution in the Cincinnati region is attributable to this group of residents. This also means that these same people waste considerably more of their life stuck in traffic than most, even though many are still well within a short bike ride of downtown, work, schools, grocery stores, and local parks. Because of the isolating nature of car dependency and the unwillingness of people to walk or bike for common errands, social capital and community engagement begins to decrease in these areas.<sup id="fnref:fn2"><a href="#fn:fn2" class="footnote">4</a></sup> Examples of these areas include Oakley, parts of Hyde Park and O’Bryonville, Mount Lookout, Pleasant Ridge, Mariemont, Montgomery, Blue Ash, Kenwood, Delhi, Mount Airy, and much of the West Side.</p>
+
+<p>And finally, we come to around the 1980’s to the present depicted by orange through yellow. This represents the mindless, sprawling development that suburbia is known for. Almost everything within this regime is <a target="_blank" href="http://www.andrewalexanderprice.com/blog20150121.php#.WL3GeFfavQo">completely car dependent</a>, which means even basic activities such as walking to school, the park, or grocery store are out of the question. These areas are most known for their pretentiously bad architecture and cheap material choice (vinyl siding, brick/stone facade) which usually comes together in the form of a <a target="_blank" href="http://www.mcmansionhell.com/post/157889533726/50-states-of-mcmansion-hell-bear-delaware">McMansion</a>. Strip malls, generic big box stores, and <a target="_blank" href="https://www.strongtowns.org/journal/2015/12/1/so-many-shoppers-so-much-unused-parking">massive oceans of black asphalt parking</a> are also a common feature in these areas.<sup id="fnref:fn3"><a href="#fn:fn3" class="footnote">5</a></sup> Because the existence of these neighborhoods are predicated on the availability of artificially cheap oil, these neighborhoods are especially susceptible to shocks in oil prices.<sup id="fnref:fn4"><a href="#fn:fn4" class="footnote">6</a></sup> This bears out in suburbias cyclic boom and bust development patterns and housing values. This unfortunate dependency coupled with the fact that real estate development within this current era tends to focus on short term profit rather than longevity, quality, and community improvement precipitates many damaging consequences. The most visible among these is the low density, hop-scotch style development wherin the newer temporarly en vogue subdivisions are built further and further out from the current subdivisions.<sup id="fnref:fn3:1"><a href="#fn:fn3" class="footnote">5</a></sup> Examples of these neighborhoods include areas such as, <a target="_blank" href="https://granolashotgun.com/2016/10/13/the-talisman-of-colerain-township/">Colerain</a>, most of Indian Hill, Mount Washington, Mason, and West Chester which effectivly function as distant commuter exurbs of Cincinnati. These areas are almost <a target="_blank" href="http://www.andrewalexanderprice.com/blog20130715.php#.WL3F-lfavQo">completely devoid of originality</a> and what little social capital is left has withered to levels that border on <a target="_blank" href="https://youtu.be/Q1ZeXnmDZMQ">non existent</a>. The end result of this short sided peacemeal developement cycle is that picturesque farm land and natural areas are converted into shopping malls, gas stations, and <a target="_blank" href="http://www.andrewalexanderprice.com/blog20140312.php#.WL3GFlfavQo">chain food</a> restaurants at an accelerated rate while simutaneously furthering our dependency on oil, increasing pollution, traffic, <a target="_blank" href="https://www.washingtonpost.com/local/trafficandcommuting/suburbs-increasingly-view-their-auto-centric-sprawl-as-a-health-hazard/2016/12/28/49a99542-c6f9-11e6-8bee-54e800ef2a63_story.html?utm_term=.7cf5b9b53aad">obesity</a>, and expensive road projects.<sup id="fnref:fn7"><a href="#fn:fn7" class="footnote">7</a></sup> The sad irony of course being that people who live in the nice, walkable neighborhoods (green and cyan) are forced to  subsidize these expensive <a target="_blank" href="https://stocktoncitylimits.com/2013/10/08/sprawl-is-not-a-product-of-the-free-market/">anti-free market</a> road projects through sales and income taxes even though they will never want or need to use them.<sup id="fnref:fn6"><a href="#fn:fn6" class="footnote">8</a></sup></p>
+
+<h3>Methodology</h3>
+
+<p>In order to get the necessary data to complete this map, I needed to scrape the real estate portion of the <a target="_blank" href="http://www.hamiltoncountyauditor.org/">Hamilton County Auditor’s website</a>. The upside to this was that I only needed a trivial Python script that took about 30min to code. The downside was that this was by far the biggest scrape to date and took over a month to complete. After all the html was parsed and the dates had been extracted, I was left with +350k rows of parcel-id’s and corresponding build dates.</p>
+
+<p>Using the shapefiles available on the <a target="_blank" href="http://cagismaps.hamilton-co.org/cagisportal/">Cincinnati Area Geographic Information System (CAGIS)</a> I was able to link the buildings to the scraped parcel-id value. This allowed me to assign the year to roughly 95% of the buildings/homes/structures. Unfortunately, this left out roughly 5% without any age. At only 5% this doesn’t sound like much but it represented almost 15k objects. From here I geocoded the addresses and peppered in some geospatial wizardry and gained another 5% or so.</p>
+
+<p>At this point, I was out of intelligent solutions and this being winter, I ended up manually looking up 2553 buildings. Since suburbia is nothing but a wasteland of mediocrity, I focused all of my manual lookup time on the downtown/basin area and closely surrounding neighborhoods.</p>
+
+<p>Overall there are 359,927 buildings/homes/structures, 5438 (1.51%) which are still missing (represented by dark grey).</p>
+
+<h3>Known Inaccuracies</h3>
+
+<p>There exist several inaccuracies with the map I made. The first is that on many older homes/buildings I ended up assigning the same build date to the garage. This is obviously not correct since many of these buildings predate the invention of the automobile and thus the garage was a later addition. To correct this, I usually deleted the garage entirely if it was a pre-World War II building, and kept the garage if it was a post-World War II building. But this was all done manually so sometimes I went with whatever looked best, thus the inaccuracy.</p>
+
+<p>The second inaccuracy was noticed during the manual lookup phase of this project. There are several structures purported to have been built in 1900 but clearly were not. My guess for this is that 1900 ended up being some kind of default filler value for the people working at the Hamilton County records office for structures that had an unknown build date.</p>
+
+<p>Lastly, several of the buildings on the U.C. campus were merged into a single shape (<a target="_blank" href="http://daapstruggle.tumblr.com/">DAAP</a> + Old Chem, Baldwin + Rhodes, and most of the medical campus among others…) and so instead of spending hours breaking all these files apart, I just averaged the years which ended up working alright.</p>
+
+<h3>References</h3>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:fn1">
+      <p>Jane Jacobs, <a target="_blank" href="http://a.co/hAP4Jyd"><i>The Death and Life of Great American Cities</i></a> (Random House, 2002) <a href="#fnref:fn1" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn5">
+      <p>Kenneth T. Jackson, <a target="_blank" href="http://a.co/73kVTVi"><i>Crabgrass Frontier: The Suburbanization of the United States</i></a> (Oxford University Press, 1987) <a href="#fnref:fn5" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn8">
+      <p>Catherine Lutz and Anne Lutz Fernandez, <a target="_blank" href="http://a.co/2JK0LhH"><i>Carjacked: The Culture of the Automobile and Its Effect on Our Lives</i></a> (St. Martin’s Press, 2010) <a href="#fnref:fn8" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn2">
+      <p>Robert D. Putnam, <a target="_blank" href="http://a.co/fZBaHfi"><i>Bowling Alone: The Collapse and Revival of American Community</i></a> (Simon &amp; Schister, 2001) <a href="#fnref:fn2" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn3">
+      <p>James Howard Kunstler, <a target="_blank" href="http://a.co/eavVZLw"><i>The Geography of Nowhere: The Rise and Decline of America’s Man-Made Landscape</i></a> (Free Press, 1994) <a href="#fnref:fn3" class="reversefootnote">&#8617;</a> <a href="#fnref:fn3:1" class="reversefootnote">&#8617;<sup>2</sup></a></p>
+    </li>
+    <li id="fn:fn4">
+      <p>Andres Duany, Elizabeth Plater-Zyberk, and Jeff Speck, <a target="_blank" href="http://a.co/dhaH2CM"><i>Suburban Nation: The Rise of Sprawl and the Decline of the American Dream</i></a> (North Point Press, 2010) <a href="#fnref:fn4" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn7">
+      <p>Howard Frumkin, Lawrence Frank, and Richard J. Jackson, <a target="_blank" href="http://a.co/7SoATac"><i>Urban Sprawl and Public Health: Designing, Planning, and Building for Healthy Communities</i></a> (Island Press, 2004) <a href="#fnref:fn7" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn6">
+      <p>Pamela Blais, <a target="_blank" href="http://a.co/5Nw29Ip"><i>Perverse Cities: Hidden Subsidies, Wonky Policy, and Urban Sprawl</i></a> (UBC Press, 2011) <a href="#fnref:fn6" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#cincinnati">#cincinnati</a>
+    
+    <a style="color:#808080" href="/tags/#urban design">#urban design</a>
+    
+    <a style="color:#808080" href="/tags/#web scraping">#web scraping</a>
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#qgis">#qgis</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

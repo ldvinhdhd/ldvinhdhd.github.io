@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+@font-face {
+	font-family:'SF Pro Display';
+	font-style:normal;
+	font-weight:300;
+    src: url("sf-pro-display_light.woff2") format("woff2");
+}
+
+.plot_style line{
+  stroke: grey;
+}
+
+.plot_style path{
+  stroke: grey;
+}
+
+.plot_style text{
+  fill: grey;
+  font-size: 1em;
+  font-family:'SF Pro Display';
+  font-style:normal;
+  font-weight:300;
+}
+
+
+
+</style>
+<body>
+
+    <div id="plot_1"></div>
+    <div id="plot_2"></div>
+    <div id="plot_3"></div>
+
+<!-- load the d3.js library -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+
+<!-- BICYCLES -->
+<script>
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 50, right: 20, bottom: 30, left: 70},
+        width = 650 - margin.left - margin.right,
+        height = 300 - margin.top - margin.bottom;
+
+    // parse the date / time
+    var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
+
+    // set the ranges
+    var x = d3.scaleTime().range([0, width]);
+    var y = d3.scaleLinear().range([height, 0]);
+
+
+
+
+
+
+
+
+
+    // PLOT #1 -> BICYCLES
+    var svg_1 = d3.select("#plot_1").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // cumulative bicycles (s)
+    var valueline1 = d3.line().curve(d3.curveStepBefore)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.BIKE_S_CUM); });
+
+    // cumulative bicycles (n)
+    var valueline2 = d3.line().curve(d3.curveStepBefore)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.BIKE_N_CUM); });
+
+    // Get the data
+    d3.csv("counts_b.csv", function(error, data) {
+        if (error) throw error;
+
+        // format the data
+        data.forEach(function(d) {
+        d.TIME = parseTime(d.TIME);
+        d.BIKE_N_CUM = +d.BIKE_N_CUM;
+        d.BIKE_S_CUM = +d.BIKE_S_CUM;});
+
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d.TIME; }));
+        y.domain([0, 60]);
+
+        // Add the valueline path.
+        svg_1.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline1)
+          .style('fill','none')
+         // .style('opacity', 0.8)
+          .style('stroke', d3.rgb(3, 120, 177));
+
+        // Add the valueline path.
+        svg_1.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline2)
+          .style('fill','none')
+          //.style('opacity', 0.8)
+          .style('stroke', d3.rgb(247, 127, 15));
+
+        // Add the X Axis
+        svg_1.append("g")
+            .attr("class", "plot_style")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .attr("y", '1em')
+            .attr("x", '-0.25em')
+            .style("text-anchor", "start");
+
+        // Add the Y Axis
+        svg_1.append("g")
+            .attr("class", "plot_style")
+            .call(d3.axisLeft(y));
+
+        // text label for the y axis
+        svg_1.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 5)
+            .attr("x", 0)
+            .attr("dy", "1em")
+            .style("text-anchor", "end")
+            .attr('font-family', 'SF Pro Display')
+            .style("font-size", "0.8em")
+            .style("fill", "grey")
+            .text("Total number of bicycles");
+
+        // add title
+        svg_1.append("text")
+            .attr("x", (width / 2))
+            .attr("y", - (margin.top / 2))
+            .attr("text-anchor", "middle")
+            .style('font-family','SF Pro Display')
+            .style("font-size", "1em")
+            .style("fill","grey")
+            .text("Cumulative Bicycle Counts on Central Pkwy for Thursday August 23, 2018");
+
+        //Draw the Rectangle
+        svg_1.append("rect")
+            .attr("x", width - 100)
+            .attr("y", height - 50 - 9 - 16)
+            .attr("width", 18)
+            .attr("height", 9)
+            .style('opacity', 0.8)
+            .style('fill', d3.rgb(247, 127, 15));
+
+        svg_1.append("text")
+            .attr("x", width - 78)
+            .attr("y", height - 50 - 16)
+            .attr('font-family', 'SF Pro Display')
+            .style("font-size", "0.8em")
+            .style("text-anchor", "start")
+            .style('fill','grey')
+            .text("Northbound");
+
+        svg_1.append("rect")
+            .attr("x", width - 100)
+            .attr("y", height - 50 - 9)
+            .attr("width", 18)
+            .attr("height", 9)
+            .style('opacity', 0.9)
+            .style('fill', d3.rgb(3, 120, 177));
+
+        svg_1.append("text")
+            .attr("x", width - 78)
+            .attr("y", height - 50)
+            .attr('font-family', 'SF Pro Display')
+            .style("font-size", "0.8em")
+            .style("text-anchor", "start")
+            .style('fill','grey')
+            .text("Southbound");
+    });
+
+
+
+
+    // PLOT #2 -> PEDESTRIANS
+    var svg_2 = d3.select("#plot_2").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // cumulative pedestrians (s)
+    var valueline3 = d3.line().curve(d3.curveStepBefore)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.PED_S_CUM); });
+
+    // cumulative pedestrians (n)
+    var valueline4 = d3.line().curve(d3.curveStepBefore)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.PED_N_CUM); });
+
+    // Get the data
+    d3.csv("counts_p.csv", function(error, data) {
+        if (error) throw error;
+
+        // format the data
+        data.forEach(function(d) {
+        d.TIME = parseTime(d.TIME);
+        d.PED_N_CUM = +d.PED_N_CUM;
+        d.PED_S_CUM = +d.PED_S_CUM;});
+
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d.TIME; }));
+        y.domain([0, 65]);
+
+        // Add the valueline path.
+        svg_2.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline3)
+          .style('fill','none')
+          .style('stroke', 'green');
+
+        // Add the valueline path.
+        svg_2.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline4)
+          .style('fill','none')
+          .style('stroke', 'blue');
+
+        // Add the X Axis
+        svg_2.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+
+        // Add the Y Axis
+        svg_2.append("g")
+          .call(d3.axisLeft(y));
+
+        // text label for the y axis
+        svg_2.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", -50)
+          .attr("x",0 - (height / 2))
+          .attr("dy", "1em")
+          .style("text-anchor", "middle")
+          .text("Pedestrians (#)");
+
+        // add title
+        svg_2.append("text")
+          .attr("x", (width / 2))
+          .attr("y", 0 - (margin.top / 2))
+          .attr("text-anchor", "middle")
+          .style("font-size", "16px")
+          .text("Cumulative Pedestrian Counts on Central Pkwy for Thursday August 23, 2018");
+    });
+
+
+
+
+
+    // PLOT #3 -> VEHICLES
+    var svg_3 = d3.select("#plot_3").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // vehicles (s)
+    var valueline5 = d3.line().curve(d3.curveBasis)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.VEH_S); });
+
+    // vehicles (n)
+    var valueline6 = d3.line().curve(d3.curveBasis)
+        .x(function(d) { return x(d.TIME); })
+        .y(function(d) { return y(d.VEH_N); });
+
+    // Get the data
+    d3.csv("counts_v.csv", function(error, data) {
+        if (error) throw error;
+
+        // format the data
+        data.forEach(function(d) {
+        d.TIME = parseTime(d.TIME);
+        d.VEH_N = +d.VEH_N;
+        d.VEH_S = +d.VEH_S;});
+
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d.TIME; }));
+        y.domain([0, 100]);
+
+        svg_3.selectAll('dot')
+            .data(data)
+            .enter().append('circle')
+            .attr("class", "dot")
+            .style('fill','green')
+            .attr('r', 1)
+            .attr('cx', function(d) { return x(d.TIME); })
+            .attr('cy', function(d) { return y(d.VEH_S); });
+
+        svg_3.selectAll('dot')
+            .data(data)
+            .enter().append('circle')
+            .attr("class", "dot")
+            .style('fill','blue')
+            .attr('r', 1)
+            .attr('cx', function(d) { return x(d.TIME); })
+            .attr('cy', function(d) { return y(d.VEH_N); });
+
+
+        // Add the valueline path.
+        svg_3.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline5)
+          .style('fill','none')
+          .style('stroke', 'green');
+
+        // Add the valueline path.
+        svg_3.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline6)
+          .style('fill','none')
+          .style('stroke', 'blue');
+
+        // Add the X Axis
+        svg_3.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+
+        // Add the Y Axis
+        svg_3.append("g")
+          .call(d3.axisLeft(y));
+
+        // text label for the y axis
+        svg_3.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", -50)
+          .attr("x",0 - (height / 2))
+          .attr("dy", "1em")
+          .style("text-anchor", "middle")
+          .text("Vehicles (#) every five minutes");
+
+        // add title
+        svg_3.append("text")
+          .attr("x", (width / 2))
+          .attr("y", 0 - (margin.top / 2))
+          .attr("text-anchor", "middle")
+          .style("font-size", "16px")
+          .text("Vehicle Counts on Central Pkwy for Thursday August 23, 2018");
+    });
+
+</script>
+
+
+
+
+
+</body>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Differential Evolution Optimization from Scratch with Python</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2017-08-27/simple-differential-evolution-with-python/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="Learn the fundimentals of differential evolution and implement it in Python.">
+        <meta name="keywords" content="evolutionary optimization, python, genetic algorithm">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="Learn the fundimentals of differential evolution and implement it in Python.">
+        <meta name="twitter:title" content="Differential Evolution Optimization from Scratch with Python">
+        <meta name="twitter:image" content="">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="Learn the fundimentals of differential evolution and implement it in Python.">
+        <meta property="og:image" content="">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Differential Evolution Optimization from Scratch with Python">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2017-08-27/simple-differential-evolution-with-python/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Differential Evolution Optimization from Scratch with Python</h1>
+        <p class="post-meta">August 27, 2017</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>Besides <a target="blank" href="https://en.wikipedia.org/wiki/Particle_swarm_optimization">particle swarm optimization</a> (PSO) which I touched on <a target="_blank" href="https://nathanrooy.github.io/posts/2016-08-17/simple-particle-swarm-optimization-with-python/">previously</a>, <a target="blank" href="https://en.wikipedia.org/wiki/Differential_evolution">differential evolution</a> (DE) is one of my go-to favorites. Just like PSO, differential evolution falls within the <a target="blank" href="https://en.wikipedia.org/wiki/Evolutionary_algorithm">evolutionary algorithms</a> (EA) family. Differential evolution is very similar to <a target="blank">genetic algorithms</a> (GA) which are based on the principles of evolutionary biology such as mutation, crossover, and selection. The downside of genetic algorithms is that at their core, they are based on a bit level information structure. Because of this, GAs excel at combinatorial optimization problems such as the <a target="blank" href="https://en.wikipedia.org/wiki/Travelling_salesman_problem">traveling salesman problem</a>. The downside is that GAs don’t natively support real valued (float values) cost functions. Sure, genetic algorithms can be modified to support float values, but in my experience it just isn’t worth it. This is where differential evolution comes it. Differential evolution is basically a genetic algorithm that natively supports float value based cost functions. In this tutorial, I hope to teach you the fundamentals of differential evolution and implement a bare bones version in <a target="_blank" href="https://www.python.org/">Python</a>.</p>
+
+<p>The basic structure of differential evolution can be summed up below:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1) Initialize a random population of individuals throughout the search space.
+
+2) while iter &lt;= max num of generations
+
+    3) cycle through each individual in the population
+    
+        3.A) perform mutation
+            
+        3.B) perform recombination ("crossover" in GA lingo)
+            
+        3.C) perform selection
+            
+    4) if stopping criterion has been met:
+            exit and return best individual
+            
+        else:
+            iter = iter + 1
+            go back to step #3
+</code></pre></div></div>
+
+<p>So let’s go through each step while implementing it in Python. Before we can get to step one, we need to construct the main function which will contain the bulk of the code:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+
+    <span class="k">return</span> <span class="n">best_individual</span></code></pre></figure>
+
+<p>Simple, let’s move to step one. Given a list of tuples representing the search space bounds for each input variable <equation class="has-jax">\( x_n \)</equation> such that:</p>
+
+<equation class="has-jax">$$ bounds = [(x_{1_{min}}, x_{1_{max}}),(x_{2_{min}},x_{2_{max}}),..,(x_{n_{min}},x_{n_{max}})] $$</equation>
+
+<p>Initializing a population of size (popsize) given user specified bounds:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+    <span class="c1">#--- INITIALIZE A POPULATION (step #1) ----------------+
+</span>    
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">):</span>
+        <span class="n">indv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="n">indv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indv</span><span class="p">)</span>
+            
+    <span class="k">return</span> <span class="n">best_individual</span>
+    </code></pre></figure>
+
+<p>It would be prudent to note at this point that the term <i>individual</i> which is simply just a one-dimensional list, or array of values will be used interchangeably with the term <i>vector</i>, since they are essentially the same exact thing. Within the Python code, this may take the form of <i>vec</i> or just simply <i>v</i>.</p>
+
+<p>Next, we need to begin the main loop of the algorithm represented by step #2, while we’re at it, we’ll knock out step #3A. There exists many different flavors of mutation for differential evolution but we’re going to stick with the simplest for now. In this version of mutation, we need to select three individuals <equation class="has-jax">\( x_1 \)</equation>, <equation class="has-jax">\( x_2 \)</equation>, and <equation class="has-jax">\( x_3 \)</equation> from the current generation that are both unique to themselves, but also unique to the currently selected individual that we’re mutating. From here we subtract individuals <equation class="has-jax">\( x_2 \)</equation> and <equation class="has-jax">\( x_3 \)</equation> from each other, and multiply the difference by the user controlled mutation factor <equation class="has-jax">\( F \)</equation> which ranges from [0,2]. This is then added to the individual <equation class="has-jax">\( x_1 \)</equation> which forms the new individual <equation class="has-jax">\( v \)</equation> or what’s called the donor. Below is the equation form of this mutation scheme.</p>
+
+<equation class="has-jax">$$ v = x_1 + F(x_2 - x_3) $$</equation>
+
+<p>One thing we need be aware of at this point is the possibility of this new donor vector existing outside of the bounds specified at initialization. Because of this, we need to create a separate function that checks and corrects for this. In the event that one of these rogue points are found, we’ll simply move it to the nearest boundary whether it’s the minimum or maximum. In the code, this new function will be called <i>ensure_bounds</i>. Implementing all this into our code looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">ensure_bounds</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+
+    <span class="n">vec_new</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># cycle through each variable in vector 
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)):</span>
+
+        <span class="c1"># variable exceedes the minimum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># variable exceedes the maximum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># the variable is fine
+</span>        <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        
+    <span class="k">return</span> <span class="n">vec_new</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">,</span> <span class="n">mutate</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">):</span>
+
+    <span class="c1">#--- INITIALIZE A POPULATION (step #1) ----------------+
+</span>    
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">):</span>
+        <span class="n">indv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="n">indv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indv</span><span class="p">)</span>
+            
+    <span class="c1">#--- SOLVE --------------------------------------------+
+</span>
+    <span class="c1"># cycle through each generation (step #2)
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">maxiter</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    
+        <span class="c1"># cycle through each individual in the population (step #3)
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+            <span class="c1">#--- MUTATION (step #3.A) ---------------------+
+</span>            
+            <span class="c1"># select three random vector index positions [0, popsize), not including current vector (j)
+</span>            <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">)</span>
+            <span class="n">canidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">random_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+            <span class="n">x_1</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">x_3</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>     <span class="c1"># target individual
+</span>
+            <span class="c1"># subtract x3 from x2, and create a new vector (x_diff)
+</span>            <span class="n">x_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_2_i</span> <span class="o">-</span> <span class="n">x_3_i</span> <span class="k">for</span> <span class="n">x_2_i</span><span class="p">,</span> <span class="n">x_3_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_2</span><span class="p">,</span> <span class="n">x_3</span><span class="p">)]</span>
+
+            <span class="c1"># multiply x_diff by the mutation factor (F) and add to x_1
+</span>            <span class="n">v_donor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_1_i</span> <span class="o">+</span> <span class="n">mutate</span> <span class="o">*</span> <span class="n">x_diff_i</span> <span class="k">for</span> <span class="n">x_1_i</span><span class="p">,</span> <span class="n">x_diff_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_diff</span><span class="p">)]</span>
+            <span class="n">v_donor</span> <span class="o">=</span> <span class="n">ensure_bounds</span><span class="p">(</span><span class="n">v_donor</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            
+    <span class="k">return</span> <span class="n">best_individual</span>
+    </code></pre></figure>
+
+<p>Where <i>maxiter</i> represents the number of generations we want to run the algorithm for and <i>mutate</i> represents the mutation factor <equation class="has-jax">\( F \)</equation>. Next step is recombination or “crossover” in the language of genetic algorithms. For this, we need to introduce a new user selected value known as the “recombination rate” (some texts refer to this as the crossover ratio or CR). This recombination rate is a float value that varies between zero and one and determines if recombination occurs. Cycling through each index position in the target vector, we generate a random value between zero and one. If this random value is less than the recombination rate, recombination occurs and we swap out the current variable in our target vector with the corresponding variable in the donor vector. If the randomly generated value is greater than the recombination rate, recombination does not happen and the variable in the target vector is left alone. This new offspring individual is called the <i>trial vector</i>.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">ensure_bounds</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+
+    <span class="n">vec_new</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># cycle through each variable in vector 
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)):</span>
+
+        <span class="c1"># variable exceedes the minimum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># variable exceedes the maximum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># the variable is fine
+</span>        <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        
+    <span class="k">return</span> <span class="n">vec_new</span>
+    
+    
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">,</span> <span class="n">mutate</span><span class="p">,</span> <span class="n">recombination</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">):</span>
+
+    <span class="c1">#--- INITIALIZE A POPULATION (step #1) ----------------+
+</span>    
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">):</span>
+        <span class="n">indv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="n">indv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indv</span><span class="p">)</span>
+            
+    <span class="c1">#--- SOLVE --------------------------------------------+
+</span>
+    <span class="c1"># cycle through each generation (step #2)
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">maxiter</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    
+        <span class="c1"># cycle through each individual in the population (step #3)
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+            <span class="c1">#--- MUTATION (step #3.A) ---------------------+
+</span>            
+            <span class="c1"># select three random vector index positions [0, popsize), not including current vector (j)
+</span>            <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">)</span>
+            <span class="n">canidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">random_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+            <span class="n">x_1</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">x_3</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>     <span class="c1"># target individual
+</span>
+            <span class="c1"># subtract x3 from x2, and create a new vector (x_diff)
+</span>            <span class="n">x_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_2_i</span> <span class="o">-</span> <span class="n">x_3_i</span> <span class="k">for</span> <span class="n">x_2_i</span><span class="p">,</span> <span class="n">x_3_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_2</span><span class="p">,</span> <span class="n">x_3</span><span class="p">)]</span>
+
+            <span class="c1"># multiply x_diff by the mutation factor (F) and add to x_1
+</span>            <span class="n">v_donor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_1_i</span> <span class="o">+</span> <span class="n">mutate</span> <span class="o">*</span> <span class="n">x_diff_i</span> <span class="k">for</span> <span class="n">x_1_i</span><span class="p">,</span> <span class="n">x_diff_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_diff</span><span class="p">)]</span>
+            <span class="n">v_donor</span> <span class="o">=</span> <span class="n">ensure_bounds</span><span class="p">(</span><span class="n">v_donor</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            
+            <span class="c1">#--- RECOMBINATION (step #3.B) ----------------+
+</span>
+            <span class="n">v_trial</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># cycle through each variable in our target vector
+</span>            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_t</span><span class="p">)):</span>
+                <span class="n">crossover</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+                
+                <span class="c1"># recombination occurs when crossover &lt;= recombination rate
+</span>                <span class="k">if</span> <span class="n">crossover</span> <span class="o">&lt;=</span> <span class="n">recombination</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v_donor</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+                <span class="c1"># recombination did not occur
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_t</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            
+    <span class="k">return</span> <span class="n">best_individual</span>
+    </code></pre></figure>
+
+<p>The last real step (#3.C) is selection which consists of evaluating our new trial individual <i>v_trial</i> against the currently selected individual (target individual, x_t). We’ll go with the easiest selection scheme for this tutorial which means we’re using greedy selection. This basically means that if the new trial individual performs better than the currently selected target individual, we delete our target individual from the population and replace it with the trial individual. If the target individual is better, than we leave it alone and move on.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">ensure_bounds</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+
+    <span class="n">vec_new</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># cycle through each variable in vector 
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)):</span>
+
+        <span class="c1"># variable exceedes the minimum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># variable exceedes the maximum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># the variable is fine
+</span>        <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        
+    <span class="k">return</span> <span class="n">vec_new</span>
+    
+    
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">,</span> <span class="n">mutate</span><span class="p">,</span> <span class="n">recombination</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">):</span>
+
+    <span class="c1">#--- INITIALIZE A POPULATION (step #1) ----------------+
+</span>    
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">):</span>
+        <span class="n">indv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="n">indv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indv</span><span class="p">)</span>
+            
+    <span class="c1">#--- SOLVE --------------------------------------------+
+</span>
+    <span class="c1"># cycle through each generation (step #2)
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">maxiter</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    
+        <span class="c1"># cycle through each individual in the population (step #3)
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+            <span class="c1">#--- MUTATION (step #3.A) ---------------------+
+</span>            
+            <span class="c1"># select three random vector index positions [0, popsize), not including current vector (j)
+</span>            <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">)</span>
+            <span class="n">canidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">random_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+            <span class="n">x_1</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">x_3</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>     <span class="c1"># target individual
+</span>
+            <span class="c1"># subtract x3 from x2, and create a new vector (x_diff)
+</span>            <span class="n">x_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_2_i</span> <span class="o">-</span> <span class="n">x_3_i</span> <span class="k">for</span> <span class="n">x_2_i</span><span class="p">,</span> <span class="n">x_3_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_2</span><span class="p">,</span> <span class="n">x_3</span><span class="p">)]</span>
+
+            <span class="c1"># multiply x_diff by the mutation factor (F) and add to x_1
+</span>            <span class="n">v_donor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_1_i</span> <span class="o">+</span> <span class="n">mutate</span> <span class="o">*</span> <span class="n">x_diff_i</span> <span class="k">for</span> <span class="n">x_1_i</span><span class="p">,</span> <span class="n">x_diff_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_diff</span><span class="p">)]</span>
+            <span class="n">v_donor</span> <span class="o">=</span> <span class="n">ensure_bounds</span><span class="p">(</span><span class="n">v_donor</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            
+            <span class="c1">#--- RECOMBINATION (step #3.B) ----------------+
+</span>
+            <span class="n">v_trial</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># cycle through each variable in our target vector
+</span>            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_t</span><span class="p">)):</span>
+                <span class="n">crossover</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+                
+                <span class="c1"># recombination occurs when crossover &lt;= recombination rate
+</span>                <span class="k">if</span> <span class="n">crossover</span> <span class="o">&lt;=</span> <span class="n">recombination</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v_donor</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+                <span class="c1"># recombination did not occur
+</span>                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_t</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    
+            <span class="c1">#--- GREEDY SELECTION (step #3.C) -------------+
+</span>
+            <span class="n">score_trial</span>  <span class="o">=</span> <span class="n">cost_func</span><span class="p">(</span><span class="n">v_trial</span><span class="p">)</span>
+            <span class="n">score_target</span> <span class="o">=</span> <span class="n">cost_func</span><span class="p">(</span><span class="n">x_t</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">score_trial</span> <span class="o">&lt;</span> <span class="n">score_target</span><span class="p">:</span>
+                <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_trial</span>
+                <span class="n">gen_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_trial</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">'   &gt;'</span><span class="p">,</span><span class="n">score_trial</span><span class="p">,</span> <span class="n">v_trial</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">'   &gt;'</span><span class="p">,</span><span class="n">score_target</span><span class="p">,</span> <span class="n">x_t</span>
+                <span class="n">gen_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_target</span><span class="p">)</span>
+                
+    <span class="k">return</span> <span class="n">best_individual</span>
+    </code></pre></figure>
+
+<p>You might have noticed that I’ve skipped over step #4 which is the stopping criteria. This is again, in the interest of keeping the code as simple as possible. Because of this, the stopping criteria is simply when we have cycled through all the generations specified at initialization. Any number of stopping mechanisms from other optimization routines can be implemented here.</p>
+
+<p>Putting everything together, adding a few lines for text output, score keeping, and some example cost functions, the final code looks like this (github repository -&gt; <a target="_blank" href="https://github.com/nathanrooy/differential-evolution-optimization-with-python/blob/master/DE.py">here</a>):</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   A simple, bare bones, implementation of differential evolution with Python
+#   August, 2017
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1">#--- EXAMPLE COST FUNCTIONS ---------------------------------------------------+
+</span>
+<span class="k">def</span> <span class="nf">func1</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c1"># Sphere function, use any bounds, f(0,...,0)=0
+</span>    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))])</span>
+
+<span class="k">def</span> <span class="nf">func2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c1"># Beale's function, use bounds=[(-4.5, 4.5),(-4.5, 4.5)], f(3,0.5)=0.
+</span>    <span class="n">term1</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.500</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">term2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.250</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">term3</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.625</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">term1</span> <span class="o">+</span> <span class="n">term2</span> <span class="o">+</span> <span class="n">term3</span>
+
+<span class="c1">#--- FUNCTIONS ----------------------------------------------------------------+
+</span>
+
+<span class="k">def</span> <span class="nf">ensure_bounds</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+
+    <span class="n">vec_new</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># cycle through each variable in vector 
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)):</span>
+
+        <span class="c1"># variable exceedes the minimum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># variable exceedes the maximum boundary
+</span>        <span class="k">if</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># the variable is fine
+</span>        <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">vec_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        
+    <span class="k">return</span> <span class="n">vec_new</span>
+
+
+<span class="c1">#--- MAIN ---------------------------------------------------------------------+
+</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cost_func</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">,</span> <span class="n">mutate</span><span class="p">,</span> <span class="n">recombination</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">):</span>
+
+    <span class="c1">#--- INITIALIZE A POPULATION (step #1) ----------------+
+</span>    
+    <span class="n">population</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">):</span>
+        <span class="n">indv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="n">indv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">bounds</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">population</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indv</span><span class="p">)</span>
+            
+    <span class="c1">#--- SOLVE --------------------------------------------+
+</span>
+    <span class="c1"># cycle through each generation (step #2)
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">maxiter</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'GENERATION:'</span><span class="p">,</span><span class="n">i</span>
+
+        <span class="n">gen_scores</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># score keeping
+</span>
+        <span class="c1"># cycle through each individual in the population
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+            <span class="c1">#--- MUTATION (step #3.A) ---------------------+
+</span>            
+            <span class="c1"># select three random vector index positions [0, popsize), not including current vector (j)
+</span>            <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">)</span>
+            <span class="n">canidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">random_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+            <span class="n">x_1</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">x_3</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>     <span class="c1"># target individual
+</span>
+            <span class="c1"># subtract x3 from x2, and create a new vector (x_diff)
+</span>            <span class="n">x_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_2_i</span> <span class="o">-</span> <span class="n">x_3_i</span> <span class="k">for</span> <span class="n">x_2_i</span><span class="p">,</span> <span class="n">x_3_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_2</span><span class="p">,</span> <span class="n">x_3</span><span class="p">)]</span>
+
+            <span class="c1"># multiply x_diff by the mutation factor (F) and add to x_1
+</span>            <span class="n">v_donor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_1_i</span> <span class="o">+</span> <span class="n">mutate</span> <span class="o">*</span> <span class="n">x_diff_i</span> <span class="k">for</span> <span class="n">x_1_i</span><span class="p">,</span> <span class="n">x_diff_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_diff</span><span class="p">)]</span>
+            <span class="n">v_donor</span> <span class="o">=</span> <span class="n">ensure_bounds</span><span class="p">(</span><span class="n">v_donor</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+
+            <span class="c1">#--- RECOMBINATION (step #3.B) ----------------+
+</span>
+            <span class="n">v_trial</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_t</span><span class="p">)):</span>
+                <span class="n">crossover</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">crossover</span> <span class="o">&lt;=</span> <span class="n">recombination</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v_donor</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">v_trial</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_t</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    
+            <span class="c1">#--- GREEDY SELECTION (step #3.C) -------------+
+</span>
+            <span class="n">score_trial</span>  <span class="o">=</span> <span class="n">cost_func</span><span class="p">(</span><span class="n">v_trial</span><span class="p">)</span>
+            <span class="n">score_target</span> <span class="o">=</span> <span class="n">cost_func</span><span class="p">(</span><span class="n">x_t</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">score_trial</span> <span class="o">&lt;</span> <span class="n">score_target</span><span class="p">:</span>
+                <span class="n">population</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_trial</span>
+                <span class="n">gen_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_trial</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">'   &gt;'</span><span class="p">,</span><span class="n">score_trial</span><span class="p">,</span> <span class="n">v_trial</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">'   &gt;'</span><span class="p">,</span><span class="n">score_target</span><span class="p">,</span> <span class="n">x_t</span>
+                <span class="n">gen_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_target</span><span class="p">)</span>
+
+        <span class="c1">#--- SCORE KEEPING --------------------------------+
+</span>
+        <span class="n">gen_avg</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gen_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">popsize</span>                         <span class="c1"># current generation avg. fitness
+</span>        <span class="n">gen_best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">gen_scores</span><span class="p">)</span>                                  <span class="c1"># fitness of best individual
+</span>        <span class="n">gen_sol</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">gen_scores</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">gen_scores</span><span class="p">))]</span>     <span class="c1"># solution of best individual
+</span>
+        <span class="k">print</span> <span class="s">'      &gt; GENERATION AVERAGE:'</span><span class="p">,</span><span class="n">gen_avg</span>
+        <span class="k">print</span> <span class="s">'      &gt; GENERATION BEST:'</span><span class="p">,</span><span class="n">gen_best</span>
+        <span class="k">print</span> <span class="s">'         &gt; BEST SOLUTION:'</span><span class="p">,</span><span class="n">gen_sol</span><span class="p">,</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span>
+
+    <span class="k">return</span> <span class="n">gen_sol</span>
+
+<span class="c1">#--- CONSTANTS ----------------------------------------------------------------+
+</span>
+<span class="n">cost_func</span> <span class="o">=</span> <span class="n">func1</span>                   <span class="c1"># Cost function
+</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>            <span class="c1"># Bounds [(x1_min, x1_max), (x2_min, x2_max),...]
+</span><span class="n">popsize</span> <span class="o">=</span> <span class="mi">10</span>                        <span class="c1"># Population size, must be &gt;= 4
+</span><span class="n">mutate</span> <span class="o">=</span> <span class="mf">0.5</span>                        <span class="c1"># Mutation factor [0,2]
+</span><span class="n">recombination</span> <span class="o">=</span> <span class="mf">0.7</span>                 <span class="c1"># Recombination rate [0,1]
+</span><span class="n">maxiter</span> <span class="o">=</span> <span class="mi">20</span>                        <span class="c1"># Max number of generations (maxiter)
+</span>
+<span class="c1">#--- RUN ----------------------------------------------------------------------+
+</span>
+<span class="n">main</span><span class="p">(</span><span class="n">cost_func</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">popsize</span><span class="p">,</span> <span class="n">mutate</span><span class="p">,</span> <span class="n">recombination</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span>
+
+<span class="c1">#--- END ----------------------------------------------------------------------+</span></code></pre></figure>
+
+<p>That’s it! Differential evolution is a very simple evolutionary routine that produces great results when used correctly. I hope this was helpful. Thanks for reading!</p>
+
+<center style="letter-spacing:1.25em; font-size:1.5em; padding-bottom:0.5em; padding-top:0.5em">·····</center>
+
+<p>Notes:
+In step #3, this implementation differs from most DE algorithms in that we cycle through each member of the population, generate a donor vector, then perform selection. In this setup, every member of the population becomes a target vector at some point which means that every individual has the possibility of being replaced. In most DE implementations, the target vector is randomly chosen. In my experience using DE (both in aerodynamic shape optimization, as well as in deep learning applications), I have found that the current implementation works much better. The standard DE implementation might be slightly more stochastic in nature, but whatever… If, you’re interested in the “standard” DE implementation swap out the lines in the above code with the following:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python">        <span class="c1"># cycle through each individual in the population
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">popsize</span><span class="p">):</span>
+
+            <span class="c1">#--- MUTATION ---------------------------------+
+</span>            
+            <span class="c1"># select four random vector index positions, range = [0, popsize)
+</span>            <span class="n">canidates</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">popsize</span><span class="p">)</span>
+            <span class="n">random_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">canidates</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+            <span class="n">x_1</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">x_2</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">x_3</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">population</span><span class="p">[</span><span class="n">random_index</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span></code></pre></figure>
+
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#evolutionary optimization">#evolutionary optimization</a>
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

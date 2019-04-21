@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Particle Swarm Optimization from Scratch with Python</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-08-17/simple-particle-swarm-optimization-with-python/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="A tutorial that covers the basics of particle swarm optimization while implementing a simplified, barebones version with Python">
+        <meta name="keywords" content="particle swarm optimization, python, tutorial, evolutionary optimization, optimization">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="A tutorial that covers the basics of particle swarm optimization while implementing a simplified, barebones version with Python">
+        <meta name="twitter:title" content="Particle Swarm Optimization from Scratch with Python">
+        <meta name="twitter:image" content="https://nathanrooy.github.io/images/2016-08-17/feature-image.jpg">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="A tutorial that covers the basics of particle swarm optimization while implementing a simplified, barebones version with Python">
+        <meta property="og:image" content="https://nathanrooy.github.io/images/2016-08-17/feature-image.jpg">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="Particle Swarm Optimization from Scratch with Python">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-08-17/simple-particle-swarm-optimization-with-python/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>Particle Swarm Optimization from Scratch with Python</h1>
+        <p class="post-meta">August 17, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>Particle swarm optimization (<a target="_blank" href="https://en.wikipedia.org/wiki/Particle_swarm_optimization">PSO</a>) is one of those rare tools that’s comically simple to code and implement while producing bizarrely good results. Developed in 1995 by Eberhart and Kennedy, PSO is a biologically inspired optimization routine designed to mimic birds flocking or fish schooling. I’ll occasionally use PSO for <a target="_blank" href="https://en.wikipedia.org/wiki/Computational_fluid_dynamics">CFD</a> based aerodynamic shape optimization, but more often than not, it’s for a machine learning project. PSO is not guaranteed to find the global minimum, but it does a solid job in challenging, high dimensional, non-convex, non-continuous environments. In this short introductory tutorial, I’ll demonstrate PSO in its absolute simplest form. At a later date, I’ll create another PSO tutorial featuring a more advanced implementation.</p>
+
+<p>Below, are the only two equations that make up a bare bones PSO algorithm. As a heads up, “k” references the current iteration, therefore “k+1″ implies the next iteration.</p>
+
+<p>Particle position:</p>
+<equation class="has-jax">$$ x_{k+1}^i = x_{k}^i + v_{k+1}^i $$</equation>
+
+<p>Particle velocity:</p>
+<equation class="has-jax">$$ v_{k+1}^i = w_k v_k^i + c_1 r_1 \left(p_k^i - x_k^i\right) + c_2 r_2 \left(p_k^g - x_k^i\right) $$</equation>
+
+<p>Where:</p>
+
+<center>
+<table style="width:60%; line-height:2.5em; max-width:400px;">
+    <col width="40%" />
+    <col width="60%" />
+    <thead>
+        <th><strong>Variable</strong></th>
+        <th><strong>Definition</strong></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( x_k^i \)</equation></td>
+            <td>particle position</td>
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( v_k^i \)</equation></td>
+            <td>particle position</td> 
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( p_k^i \)</equation></td>
+            <td>best individual particle position</td>
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( p_k^g \)</equation></td>
+            <td>best swarm position</td>
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( w_k \)</equation></td>
+            <td>constant inertia weight</td>
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( c_1, c_2 \)</equation></td>
+            <td>cognitive and social parameters respectively</td>
+        </tr>
+        <tr>
+            <td><equation class="has-jax" style="padding-left:30px">\( r_1, r_2 \)</equation></td>
+            <td>random numbers between 0 and 1</td>
+        </tr>
+    </tbody>
+</table>
+</center>
+
+<p>From the particle velocity equation, two important groups emerge:</p>
+<ol class="ul-style-b">
+    <li>social term: <equation class="has-jax">\( c_2 r_2 \left(p_k^g - x_k^i\right) \)</equation></li>
+    <li>cognitive term: <equation class="has-jax">\( c_1 r_1 \left(p_k^i - x_k^i\right) \)</equation></li>
+</ol>
+<p>Using these two simple equations, the basic flow structure of a PSO routine is as follows:</p>
+
+<p>A) Initialize</p>
+<ol class="ul-style-b">
+    <li>Set constants: <equation class="has-jax">\( k_{max}, w_k, c_1, c_2 \)</equation></li>
+    <li>Randomly initialize particle positions.</li>
+    <li>Randomly initialize particle velocities.</li>
+    <li>Set k=1 (iteration counter).</li>
+</ol>
+
+<p>B) Optimize</p>
+<ol class="ul-style-b">
+    <li>Evaluate cost function <equation class="has-jax">\( f_k^i \)</equation> at each particle position <equation class="has-jax">\( x_k^i \)</equation></li>
+    <li>If <equation class="has-jax">\( f_k^i \le f_{best}^i \)</equation> then <equation class="has-jax">\( f_{best}^i = f_k^i \)</equation> and <equation class="has-jax">\( p_k^i = x_k^i \)</equation>.</li>
+    <li>If <equation class="has-jax">\( f_k^i \le f_{best}^g \)</equation> then <equation class="has-jax">\( f_{best}^g = f_k^i \)</equation> and <equation class="has-jax">\( p_k^g = x_k^i \)</equation>.</li>
+    <li>If stopping condition is satisfied, go to C.</li>
+    <li>Update all particle velocities.</li>
+    <li>Update all particle positions.</li>
+    <li>Increment k.</li>
+    <li>Go to B(1).</li>
+</ol>
+
+<p>C) Terminate</p>
+
+<p>That’s it! It’s really is that simple. The main concept behind PSO, which is evident from the particle velocity equation above, is that there is a constant balance between three distinct forces pulling on each particle:</p>
+
+<ol class="ul-style-b">
+    <li>The particles previous velocity (inertia)</li>
+    <li>Distance from the individual particles’ best known position (cognitive force)</li>
+    <li>Distance from the swarms best known position (social force)</li>
+</ol>
+
+<p>
+These three forces are then weighted by <equation class="has-jax">\( w_k \)</equation>, <equation class="has-jax">\( c_1 \)</equation>, <equation class="has-jax">\( c_2 \)</equation> and randomly perturbed by <equation class="has-jax">\( r_1 \)</equation> and <equation class="has-jax">\( r_2 \)</equation>. Thus depending on the weighting, either the swarms best location <equation class="has-jax">\( p_k^g \)</equation> or the particles own best position <equation class="has-jax">\( p_k^i \)</equation> will pull harder on the particle and dictate the overall direction. That’s assuming the particles initial velocity (or inertia)  won’t cause the particle to wonder around. Often times, if you notice that the convergence is taking longer it’s because the particle inertia is weighted to heavily and should be reduced to speed up convergence. Keep in mind, that particle inertia is a double-edged-sword. If you're dealing with a noisy, highly multimodal cost function, too little inertia could result in the particles getting trapped at a local minimum, unable to climb out.
+</p>
+
+<p>In vector form, these three forces can be seen below (vector magnitude represents the weight value of that specific force):</p>
+
+<center>
+    <figure>
+        <img alt="pso-vector-1" title="pso-vector-1" src="/images/2016-08-17/pso-vector-1.png" />
+        <figcaption>Figure 1: a high energy particle that will keep exploring the search space</figcaption>
+    </figure>
+</center>
+
+<p>We can see in the above example that the weighting of the particles inertia and individual best overpower the swarms influence. In this scenario, the particle will continue exploring the search space rather than converge on the swarm. As another example below:</p>
+
+<center>
+    <fig>
+        <img alt="pso-vector-2" title="pso-vector-2" src="/images/2016-08-17/pso-vector-2.png" />
+        <figcaption>Figure 2: a lazy particle that follows the herd</figcaption>
+    </fig>
+</center>
+
+<p>This time, the weighting assigned to the swarms influence overpowers the individual forces of the particle forcing it towards the swarm. This will result in a faster convergence, at the expense of not fully exploring the search space and potentially finding a better solution.</p>
+
+<p>The implementation of a simple PSO routine in python is fairly straightforward. We are going to utilize some object-oriented programming and create a swarm of particles using a particle class. These particles will be monitored by a main optimization class. Below is the entire code:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   Simple Particle Swarm Optimization (PSO) with Python
+#   July, 2016
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1">#--- COST FUNCTION ------------------------------------------------------------+
+</span>
+<span class="c1"># function we are attempting to optimize (minimize)
+</span><span class="k">def</span> <span class="nf">func1</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">total</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="n">total</span><span class="o">+=</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="c1">#--- MAIN ---------------------------------------------------------------------+
+</span>
+<span class="k">class</span> <span class="nc">Particle</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="o">=</span><span class="p">[]</span>          <span class="c1"># particle position
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">velocity_i</span><span class="o">=</span><span class="p">[]</span>          <span class="c1"># particle velocity
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">pos_best_i</span><span class="o">=</span><span class="p">[]</span>          <span class="c1"># best position individual
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">err_best_i</span><span class="o">=-</span><span class="mi">1</span>          <span class="c1"># best error individual
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">err_i</span><span class="o">=-</span><span class="mi">1</span>               <span class="c1"># error individual
+</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_dimensions</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocity_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="c1"># evaluate current fitness
+</span>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">costFunc</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">err_i</span><span class="o">=</span><span class="n">costFunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">)</span>
+
+        <span class="c1"># check to see if the current position is an individual best
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_best_i</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_best_i</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos_best_i</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">position_i</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">err_best_i</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">err_i</span>
+
+    <span class="c1"># update new particle velocity
+</span>    <span class="k">def</span> <span class="nf">update_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pos_best_g</span><span class="p">):</span>
+        <span class="n">w</span><span class="o">=</span><span class="mf">0.5</span>       <span class="c1"># constant inertia weight (how much to weigh the previous velocity)
+</span>        <span class="n">c1</span><span class="o">=</span><span class="mi">1</span>        <span class="c1"># cognative constant
+</span>        <span class="n">c2</span><span class="o">=</span><span class="mi">2</span>        <span class="c1"># social constant
+</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_dimensions</span><span class="p">):</span>
+            <span class="n">r1</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+            <span class="n">r2</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+
+            <span class="n">vel_cognitive</span><span class="o">=</span><span class="n">c1</span><span class="o">*</span><span class="n">r1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_best_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">vel_social</span><span class="o">=</span><span class="n">c2</span><span class="o">*</span><span class="n">r2</span><span class="o">*</span><span class="p">(</span><span class="n">pos_best_g</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocity_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">w</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">velocity_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">vel_cognitive</span><span class="o">+</span><span class="n">vel_social</span>
+
+    <span class="c1"># update the particle position based off new velocity updates
+</span>    <span class="k">def</span> <span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">bounds</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_dimensions</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">velocity_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># adjust maximum position if necessary
+</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># adjust minimum position if neseccary
+</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">position_i</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">bounds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                
+<span class="k">class</span> <span class="nc">PSO</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">costFunc</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">bounds</span><span class="p">,</span><span class="n">num_particles</span><span class="p">,</span><span class="n">maxiter</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">num_dimensions</span>
+
+        <span class="n">num_dimensions</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">err_best_g</span><span class="o">=-</span><span class="mi">1</span>                   <span class="c1"># best error for group
+</span>        <span class="n">pos_best_g</span><span class="o">=</span><span class="p">[]</span>                   <span class="c1"># best position for group
+</span>
+        <span class="c1"># establish the swarm
+</span>        <span class="n">swarm</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_particles</span><span class="p">):</span>
+            <span class="n">swarm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Particle</span><span class="p">(</span><span class="n">x0</span><span class="p">))</span>
+
+        <span class="c1"># begin optimization loop
+</span>        <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="c1">#print i,err_best_g
+</span>            <span class="c1"># cycle through particles in swarm and evaluate fitness
+</span>            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_particles</span><span class="p">):</span>
+                <span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">costFunc</span><span class="p">)</span>
+
+                <span class="c1"># determine if current particle is the best (globally)
+</span>                <span class="k">if</span> <span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">err_i</span> <span class="o">&lt;</span> <span class="n">err_best_g</span> <span class="ow">or</span> <span class="n">err_best_g</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">pos_best_g</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">position_i</span><span class="p">)</span>
+                    <span class="n">err_best_g</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">err_i</span><span class="p">)</span>
+
+            <span class="c1"># cycle through swarm and update velocities and position
+</span>            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_particles</span><span class="p">):</span>
+                <span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">update_velocity</span><span class="p">(</span><span class="n">pos_best_g</span><span class="p">)</span>
+                <span class="n">swarm</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">update_position</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="c1"># print final results
+</span>        <span class="k">print</span> <span class="s">'FINAL:'</span>
+        <span class="k">print</span> <span class="n">pos_best_g</span>
+        <span class="k">print</span> <span class="n">err_best_g</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__PSO__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+<span class="c1">#--- RUN ----------------------------------------------------------------------+
+</span>
+<span class="n">initial</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>               <span class="c1"># initial starting location [x1,x2...]
+</span><span class="n">bounds</span><span class="o">=</span><span class="p">[(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)]</span>  <span class="c1"># input bounds [(x1_min,x1_max),(x2_min,x2_max)...]
+</span><span class="n">PSO</span><span class="p">(</span><span class="n">func1</span><span class="p">,</span><span class="n">initial</span><span class="p">,</span><span class="n">bounds</span><span class="p">,</span><span class="n">num_particles</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="c1">#--- END ----------------------------------------------------------------------+</span></code></pre></figure>
+
+<p>I hope this was helpful! If you want, you can download the entire code from my GitHub (<a target="_blank" href="https://github.com/nathanrooy/Particle-Swarm-Optimization-with-Python/blob/master/simple-particle-swarm-optimization.py">here</a>). Check back later for my post on a more advanced particle swarm optimization routine.</p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#evolutionary optimization">#evolutionary optimization</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>

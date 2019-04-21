@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>2D Airfoil Geometry Manipulation via Composite Quadratic Bézier Curves and Python</title>
+        <link rel="canonical" href="https://nathanrooy.github.io/posts/2016-09-14/airfoil-manipulation-via-bezier-curves-with-python/">
+
+        <!-- Meta (general) -->
+        <meta name="author" content="Nathan Rooy">
+        <meta name="copyright" content="Nathan A. Rooy">
+        <meta name="description" content="a collection of random projects">
+        <meta name="keywords" content="Python, tutorials, machine learning, deep learning, natural language processing, evolutionary optimization, urban design, mobility, geospatial analysis, data science, web scraping, Cincinnati">
+        <meta name="language" content="en">
+        <meta name="viewport" content="width=device-width">
+        
+        <!-- Meta (Twitter) -->
+        <meta name="twitter:card" content="https://nathanrooy.github.io">
+        <meta name="twitter:description" content="a collection of random projects">
+        <meta name="twitter:title" content="2D Airfoil Geometry Manipulation via Composite Quadratic Bézier Curves and Python">
+        <meta name="twitter:image" content="">
+        
+        <!-- Open Graph -->
+        <meta property="og:description" content="a collection of random projects">
+        <meta property="og:image" content="">
+        <meta property="og:locale" content="en_US">
+        <meta property="og:site_name" content="nathanrooy.github.io">
+        <meta property="og:title" content="2D Airfoil Geometry Manipulation via Composite Quadratic Bézier Curves and Python">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://nathanrooy.github.io/posts/2016-09-14/airfoil-manipulation-via-bezier-curves-with-python/">
+        
+        <!-- For all browsers -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="/favicon.png">
+        
+        <!-- GOOGLE ANALYTICS -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-88488688-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        
+        <!--- INCLUDE INLINE FOOTNOTES JAVASCRIPT -->
+        <script src="/assets/js/inlineNotes.js"></script>
+        
+        <!--- MATHJAX --->
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    </head>
+
+    <body>
+
+    <header id="site-header">
+    <div class="wrap">
+        <span>
+            <h1>Nathan Rooy</h1>
+            <hr size="10">
+            <a href="/about/">About</a>
+            <a href="mailto:nathanrooy@gmail.com?Subject=githubpage">Contact</a>
+            <a href="/">Home</a>
+        </span>
+    </div>
+</header>
+
+    <div id="page-content">
+      <div class="wrap">
+      <div class="post">
+    
+    
+    <header class="post-header">
+        <h1>2D Airfoil Geometry Manipulation via Composite Quadratic Bézier Curves and Python</h1>
+        <p class="post-meta">September 14, 2016</p>
+    </header>
+    
+    
+    <br>
+
+    <article class="post-content">
+        <p>Before any type of shape optimization can occur, the geometry needs to be <a target="_blank" href="https://en.wikipedia.org/wiki/Parametrization">parameterized</a> (usually…). One of the easiest ways to accomplish this is through the use of <a target="_blank" href="https://en.wikipedia.org/wiki/B%C3%A9zier_curve">Bézier</a> curves. For this tutorial, we’re not going to manipulate an existing geometry, rather we’re going to generate the geometry from scratch using a series of connected Bézier curves called a <a target="_blank" href="https://en.wikipedia.org/wiki/Composite_B%C3%A9zier_curve">composite Bézier curve</a>.</p>
+
+<p>
+A quadratic Bézier curve is defined using three control points. The first and third point are what’s called anchor points, while the middle point controls the shape of the curve. For <equation class="has-jax">\( 0 \le t \le 1 \)</equation>, a quadratic Bézier curve is defined as:
+</p>
+
+<equation class="has-jax"> $$ B \left ( t \right ) = \left ( 1 - t \right ) \left [ \left ( 1 - t \right ) P_0 + t P_1 \right ] + t \left [ \left ( 1 - t \right ) P_1 + t P_2 \right ] $$ </equation>
+
+<p>
+As a quick mental example, t, is a one dimensional array of values going from 0 to 1 such as t=[0.0,0.25,0.5,0.75,1.0]. As we loop through our values within t, we can see that the weighting of each control points changes. At t[0]=0.0, <equation class="has-jax">\( P_0 \)</equation> has 100% of the influence. As we cycle forward to t[3]=0.5, <equation class="has-jax">\( P_1 \)</equation> has the dominate influence. And finally, at t[5]=1.0, <equation class="has-jax">\( P_2 \)</equation> has 100% of the weighting. Below, I have plotted the quadratic Bézier curve <a target="_blank" href="https://en.wikipedia.org/wiki/Basis_function">basis function</a> which graphically shows the influence each control point has on the curve as you progress from t=0 to t=1.
+</p>
+
+<figure><center><img src="/images/2016-09-14/01-tiny.png" alt="" /></center></figure>
+
+<p>To implement this in Python we’ll have two sets of the above equation. One for the x-coordinates and one for the y-coordinates. Below is a very simple code that demonstrates what a single quadratic Bézier curve looks like. GitHub script download (<a target="_blank" href="https://github.com/nathanrooy/aerodynamic-shape-optimization/blob/master/simple-quadratic-bezier-curve-example.py">here</a>)</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   Simple Quadratic Bezier Curve Example
+#   2015-08-12
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="c1">#--- MAIN ---------------------------------------------------------------------+
+</span>
+<span class="n">numPts</span><span class="o">=</span><span class="mi">20</span>                                   <span class="c1"># number of points in Bezier Curve
+</span><span class="n">controlPts</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>            <span class="c1"># control points
+</span><span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">*</span><span class="mi">1</span><span class="o">/</span><span class="n">numPts</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">numPts</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+
+<span class="n">B_x</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">B_y</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">controlPts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1">#--- PLOT ---------------------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">pylab</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">controlPts</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s">'Bezier Curve'</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'#666666'</span><span class="p">,)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="p">,</span><span class="s">'o'</span><span class="p">,</span><span class="n">mfc</span><span class="o">=</span><span class="s">'none'</span><span class="p">,</span><span class="n">mec</span><span class="o">=</span><span class="s">'r'</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s">'Control Points'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Quadratic Bezier Curve'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s">'01-basic-quadratic-bezier-curve.png'</span><span class="p">,</span><span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#--- END ----------------------------------------------------------------------+</span></code></pre></figure>
+
+<p>Below is an image of the final product. If we look back at the quadratic Bézier curve formula, <equation class="has-jax">\( P_0 \)</equation> is the red control point located at (0,0), <equation class="has-jax">\( P_1 \)</equation> and <equation class="has-jax">\( P_2 \)</equation> are located at (0.5,1) and (1,0) respectively.</p>
+
+<figure><center><img src="/images/2016-09-14/02-tiny.png" alt="" /></center></figure>
+
+<p>If we animate the above script to show the progression, it becomes very easy to see how Bézier curves actually work.</p>
+
+<figure><center><img src="/images/2016-09-14/03.gif" alt="" /></center></figure>
+
+<p>At least for me, the animation really helps bring a better understanding to the underlying math. So how does this relate to airfoils, geometry manipulation, or aerodynamic design? Simple, all we need to do now is string together a series of these curves so that we can create something useful. This is what’s called a <a target="_blank" href="https://en.wikipedia.org/wiki/Composite_B%C3%A9zier_curve">composite Bézier curve</a>, essentially a piecewise series of individual Bézier curves lined up to form a single curve. This will allow us to start creating and manipulating complex geometry. Below is a simple script for generating a composite Bézier curve based off an arbitrary number of control points. GitHub download (<a target="_blank" href="https://github.com/nathanrooy/aerodynamic-shape-optimization/blob/master/composite-quadratic-bezier-curve-airfoil-example.py">here</a>).</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1">#------------------------------------------------------------------------------+
+#
+#   Nathan A. Rooy
+#   Composite Quadratic Bezier Curve Example (Airfoil)
+#   2015-08-12
+#
+#------------------------------------------------------------------------------+
+</span>
+<span class="c1">#--- IMPORT DEPENDENCIES ------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="c1">#--- MAIN ---------------------------------------------------------------------+
+</span>
+<span class="k">def</span> <span class="nf">quadraticBezier</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">B_x</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">B_y</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">t</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span>
+
+<span class="k">def</span> <span class="nf">airfoil</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">,</span><span class="n">numPts</span><span class="p">,</span><span class="n">write</span><span class="p">):</span>
+    <span class="n">curve</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">*</span><span class="mi">1</span><span class="o">/</span><span class="n">numPts</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">numPts</span><span class="p">)])</span>
+    
+    <span class="c1"># calculate first Bezier curve
+</span>    <span class="n">midX</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">midY</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="o">=</span><span class="n">quadraticBezier</span><span class="p">(</span><span class="n">t</span><span class="p">,[</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ctlPts</span><span class="p">[</span><span class="mi">1</span><span class="p">],[</span><span class="n">midX</span><span class="p">,</span><span class="n">midY</span><span class="p">]])</span>
+    <span class="n">curve</span><span class="o">=</span><span class="n">curve</span><span class="o">+</span><span class="nb">zip</span><span class="p">(</span><span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="p">)</span>
+
+    <span class="c1"># calculate middle Bezier Curves
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">)</span><span class="o">-</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">p0</span><span class="o">=</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">p1</span><span class="o">=</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">p2</span><span class="o">=</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">midX_1</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">midY_1</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">midX_2</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">midY_2</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="o">=</span><span class="n">quadraticBezier</span><span class="p">(</span><span class="n">t</span><span class="p">,[[</span><span class="n">midX_1</span><span class="p">,</span><span class="n">midY_1</span><span class="p">],</span><span class="n">ctlPts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],[</span><span class="n">midX_2</span><span class="p">,</span><span class="n">midY_2</span><span class="p">]])</span>
+        <span class="n">curve</span><span class="o">=</span><span class="n">curve</span><span class="o">+</span><span class="nb">zip</span><span class="p">(</span><span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="p">)</span>                      
+   
+    <span class="c1"># calculate last Bezier curve
+</span>    <span class="n">midX</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">midY</span><span class="o">=</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="o">=</span><span class="n">quadraticBezier</span><span class="p">(</span><span class="n">t</span><span class="p">,[[</span><span class="n">midX</span><span class="p">,</span><span class="n">midY</span><span class="p">],</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">curve</span><span class="o">=</span><span class="n">curve</span><span class="o">+</span><span class="nb">zip</span><span class="p">(</span><span class="n">B_x</span><span class="p">,</span><span class="n">B_y</span><span class="p">)</span>
+    <span class="n">curve</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctlPts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># write airfoil coordinates to text file
+</span>    <span class="k">if</span> <span class="n">write</span><span class="p">:</span>
+        <span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">curve</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">'airfoilCoords.txt'</span><span class="p">,</span><span class="s">'wa'</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xPts</span><span class="p">)):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">xPts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="s">','</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">yPts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">curve</span>
+
+<span class="c1">#--- 11 CONTROL POINT AIRFOIL EXAMPLE -----------------------------------------+
+</span>
+<span class="n">points</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.001</span><span class="p">],</span>              <span class="c1"># trailing edge (top)
+</span>        <span class="p">[</span><span class="mf">0.76</span><span class="p">,</span><span class="mf">0.08</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.52</span><span class="p">,</span><span class="mf">0.125</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span><span class="mf">0.12</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.08</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.03</span><span class="p">],</span>               <span class="c1"># leading edge (top)
+</span>        <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mf">0.03</span><span class="p">],</span>              <span class="c1"># leading edge (bottom)
+</span>        <span class="p">[</span><span class="mf">0.15</span><span class="p">,</span><span class="o">-</span><span class="mf">0.08</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.37</span><span class="p">,</span><span class="o">-</span><span class="mf">0.01</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.69</span><span class="p">,</span><span class="mf">0.04</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mf">0.001</span><span class="p">]]</span>             <span class="c1"># trailing edge (bottom)
+</span>
+<span class="c1">#--- RUN EXAMPLE --------------------------------------------------------------+
+</span>
+<span class="n">curve</span><span class="o">=</span><span class="n">airfoil</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="mi">16</span><span class="p">,</span><span class="n">write</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># pick even number of points so that the leading edge is defined by a single point...
+</span>
+<span class="c1">#--- PLOT ---------------------------------------------------------------------+
+</span>
+<span class="kn">from</span> <span class="nn">pylab</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">)</span>
+<span class="n">xPts2</span><span class="p">,</span><span class="n">yPts2</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">curve</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">xPts2</span><span class="p">,</span><span class="n">yPts2</span><span class="p">,</span><span class="s">'b'</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'#666666'</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">xPts</span><span class="p">,</span><span class="n">yPts</span><span class="p">,</span><span class="s">'o'</span><span class="p">,</span><span class="n">mfc</span><span class="o">=</span><span class="s">'none'</span><span class="p">,</span><span class="n">mec</span><span class="o">=</span><span class="s">'r'</span><span class="p">,</span><span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Composite Quadratic Bezier Curve Based Airfoil'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.55</span><span class="p">,</span><span class="mf">0.55</span><span class="p">)</span>
+<span class="c1">##plt.savefig('airfoil-final.png',dpi=72)
+</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#--- END ----------------------------------------------------------------------+</span></code></pre></figure>
+
+<center><img src="/images/2016-09-14/04-tiny.png" /></center>
+
+<p>The above example is a generic airfoil featuring 11 unique control points and a finite thickness trailing edge. Now that we have covered the basics, in a future post, I’ll explain how we can use this script to optimize airfoils for a given performance characteristic.</p>
+
+    </article>
+    
+    
+    <!--- TAGS SECTION --->
+    
+    
+    
+    <!--- DIVIDING LINE -->
+    
+    <hr style="margin-top:-3em; margin-bottom:3em; height:1px; background-color:#d6d6d6; border:0;">
+    
+    
+    <!-- POST TAGS -->
+    <span class="tags" style="margin-bottom:4em; color:#808080;">TAGS:
+    
+    <a style="color:#808080" href="/tags/#python">#python</a>
+    
+    <a style="color:#808080" href="/tags/#bezier curve">#bezier curve</a>
+    
+    <a style="color:#808080" href="/tags/#geometry manipulation">#geometry manipulation</a>
+    
+    <a style="color:#808080" href="/tags/#shape optimization">#shape optimization</a>
+    
+    </span>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    
+    
+    <!--- END TAGS SECTION --->
+    
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+<center>
+    &copy; 2019  <a href="/about">Nathan A. Rooy</a>.
+    <br>
+    Built with <a target="_blank" href="http://jekyllrb.com" rel="nofollow">Jekyll</a>.
+    Powered by <a target="_blank" href="http://www.github.com">GitHub</a>
+    </center>
+    
+</footer>
+
+    </body>
+</html>
