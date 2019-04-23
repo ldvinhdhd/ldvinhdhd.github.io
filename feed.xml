@@ -32,7 +32,7 @@
       width:7px;
     }
     #map{
-       width: 100%;
+       width: 650px;
        height: 400px
     }
 .leaflet-control-fullscreen a {
@@ -1051,7 +1051,7 @@ svg_3.append(&quot;text&quot;)
     &lt;/figure&gt;
 &lt;/center&gt;
 
-&lt;p&gt;&lt;strong&gt;Hardware&lt;/strong&gt; — This initial version uses the v2 Pi NoIR 8-megapixel/1080p30 (Sony IMX219 sensor) camera paired with the Raspberry Pi Zero. The lack of computing power resulted in the tracking algorithm unable to exceed a frame rate of 2Hz. All of this was powered by a 30,000mAh USB battery pack. In hindsight, I should have probably just gotten the Raspberry Pi 3 B+ with some kind of small industrial batter pack.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Hardware&lt;/strong&gt; — This initial version uses the v2 Pi NoIR 8-megapixel/1080p30 (Sony IMX219 sensor) camera paired with the Raspberry Pi Zero. The lack of computing power resulted in the tracking algorithm unable to exceed a frame rate of 2Hz. All of this was powered by a 30,000mAh USB battery pack. In hindsight, I should have probably just gotten the Raspberry Pi 3 B+ with some kind of small industrial battery pack.&lt;/p&gt;
 
 &lt;h3&gt;References&lt;/h3&gt;
 
