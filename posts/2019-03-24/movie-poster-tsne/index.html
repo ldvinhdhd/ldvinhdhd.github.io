@@ -84,9 +84,9 @@
     <article class="post-content">
         <p>Recently this past winter my friends and I were trying to find something to watch on one of the major video streaming services and as as usual, we were drowning in decision paralysis. Page after page, and still nothing. After a certain point, all the movie covers began to blend together at which point we gave up. This got me thinking on the visual similarity of movie posters and the seemingly unoriginal designs most of them have…</p>
 
-<p>After doing a little research, it turns out that others have also noticed this pattern of visual similarity.<sup id="fnref:fn1"><a href="#fn:fn1" class="footnote">1</a></sup><sup>,</sup><sup id="fnref:fn2"><a href="#fn:fn2" class="footnote">2</a></sup><sup>,</sup><sup id="fnref:fn3"><a href="#fn:fn3" class="footnote">3</a></sup><sup>,</sup><sup id="fnref:fn4"><a href="#fn:fn4" class="footnote">4</a></sup> Within a short amount of time, I was able to come across dozens of common tropes movie studios have been using for their movie covers. Because all of the existing analysis had been manually completed, I began wondering if there was a way to automate that process and potentially find new visual relationships that hadn’t been noticed yet. Luckily, thanks to <a target="_blank" href="https://en.wikipedia.org/wiki/Deep_learning">deep learning</a>, this is a fairly trivial task.</p>
+<p>After doing a little research, it turns out that others have also noticed this pattern of visual similarity.<sup id="fnref:fn1"><a href="#fn:fn1" class="footnote">1</a></sup><sup>,</sup><sup id="fnref:fn3"><a href="#fn:fn3" class="footnote">2</a></sup><sup>,</sup><sup id="fnref:fn4"><a href="#fn:fn4" class="footnote">3</a></sup> Within a short amount of time, I was able to come across dozens of common tropes movie studios have been using for their movie covers. Because all of the existing analysis had been manually completed, I began wondering if there was a way to automate that process and potentially find new visual relationships that hadn’t been noticed yet. Luckily, thanks to <a target="_blank" href="https://en.wikipedia.org/wiki/Deep_learning">deep learning</a>, this is a fairly trivial task.</p>
 
-<p>Scraping the movie covers from the internet yielded just over 169k images, of which 2636 were identical duplicates and thus removed. From here, the pool of images was reduced by an additional ~5k because they were boring, algorithmically generated images. Utilizing <a target="_blank" href="https://github.com/tensorflow/tensorflow">TensorFlow</a> and the inceptionV3<sup id="fnref:fn5"><a href="#fn:fn5" class="footnote">5</a></sup> architecture pretrained on the <a target="_blank" href="https://en.wikipedia.org/wiki/ImageNet">ImageNet</a> dataset, I pulled network values from the second to last fully connected layer. This resulted in a 2048x1 vector which was then reduced down to a 2x1 using <a target="_blank" href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding">t-SNE</a>.<sup id="fnref:fn6"><a href="#fn:fn6" class="footnote">6</a></sup> Finally, the image vectors were translated from t-SNE space into a structured grid space via <a target="_blank" href="https://en.wikipedia.org/wiki/Combinatorial_optimization">combinatorial optimization</a> by solving the <a target="_blank" href="https://en.wikipedia.org/wiki/Assignment_problem">assignment problem</a>. The results as seen below, were then <a target="_blank" href="https://en.wikipedia.org/wiki/Tiled_web_map">tiled</a> and served through <a target="_blank" href="https://leafletjs.com/">Leaflet</a>. Make sure you click the full screen option!</p>
+<p>Scraping the movie covers from the internet yielded just over 169k images, of which 2636 were identical duplicates and thus removed. From here, the pool of images was reduced by an additional ~5k because they were boring, algorithmically generated images. Utilizing <a target="_blank" href="https://github.com/tensorflow/tensorflow">TensorFlow</a> and the inceptionV3<sup id="fnref:fn5"><a href="#fn:fn5" class="footnote">4</a></sup> architecture pretrained on the <a target="_blank" href="https://en.wikipedia.org/wiki/ImageNet">ImageNet</a> dataset, I pulled network values from the second to last fully connected layer. This resulted in a 2048x1 vector which was then reduced down to a 2x1 using <a target="_blank" href="https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding">t-SNE</a>.<sup id="fnref:fn6"><a href="#fn:fn6" class="footnote">5</a></sup> Finally, the image vectors were translated from t-SNE space into a structured grid space via <a target="_blank" href="https://en.wikipedia.org/wiki/Combinatorial_optimization">combinatorial optimization</a> by solving the <a target="_blank" href="https://en.wikipedia.org/wiki/Assignment_problem">assignment problem</a>. The results as seen below, were then <a target="_blank" href="https://en.wikipedia.org/wiki/Tiled_web_map">tiled</a> and served through <a target="_blank" href="https://leafletjs.com/">Leaflet</a>. Make sure you click the full screen option!</p>
 
 <link rel="stylesheet" href="/assets/leaflet/leaflet.css" />
 
@@ -193,7 +193,47 @@ console.log(map.getBounds().toString());
     </div>
 </div>
 
-<p>Like the architecture of most neural networks tasked with image classification, the InceptionV3 is based around the <a target="_blank" href="https://en.wikipedia.org/wiki/Convolutional_neural_network">convolution</a>. Because of this, edges become the areas of interest within an image. While exploring the landscape, it’s interesting to note how sometimes the network is able to nail similarity while other times it’s questionable at best. This is partly because what we as humans define as similar can be quite different from what the network considers as similar. It’s also partly due to the fact that most movie posters are feature rich and T-SNE treats all positions within the feature vector fairly equal (i.e. trees == people == boats). Because of this, a movie poster with a forest and a single person is roughly equal to a poster with a couple of trees and multiple people. Either way, the network is able to produce some pretty interesting clusters.</p>
+<p>Like the architecture of most neural networks tasked with image classification, the InceptionV3 is based around the <a target="_blank" href="https://en.wikipedia.org/wiki/Convolutional_neural_network">convolution</a>. Because of this, edges become the areas of interest within an image. While exploring the landscape, it’s interesting to note how sometimes the network is able to nail similarity while other times it’s questionable at best. This is partly because what we as humans define as similar can be quite different from what the network considers as similar. It’s also partly due to the fact that most movie posters are feature rich and t-SNE treats all positions within the feature vector fairly equal (i.e. trees == people == boats). Because of this, a movie poster with a forest and a single person is roughly equal to a poster with a couple of trees and multiple people. Regardless, the network is able to produce some pretty interesting clusters. These clusters were captured using <a target="_blank" href="https://en.wikipedia.org/wiki/DBSCAN">DBSCAN</a> while in t-SNE space and lightly trimmed down with some manual input. Below are a small sample of these clusters.</p>
+
+<center>
+    <figure>
+        <img title="movie posters - people sitting on benches" src="/images/2019-03-24/people-sitting-on-bench-90p.jpg" />
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img title="movie posters - lions" src="/images/2019-03-24/lions-90p.jpg" />
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img title="movie posters - eyeballs" src="/images/2019-03-24/eyeballs-single-90p.jpg" />
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img title="movie posters - looking through windshield" src="/images/2019-03-24/looking-through-windshield-90p.jpg" />
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img title="movie posters - legs" src="/images/2019-03-24/legs-70p.jpg" />
+    </figure>
+</center>
+
+<center>
+    <figure>
+        <img title="movie posters - sunglasses" src="/images/2019-03-24/sunglasses-clip-70p.jpg" />
+    </figure>
+</center>
+
+<p>The clusters above are amongst the most interesting and easily identifiable in terms of a common theme or pattern. Coincidently, some are also near duplicates of previously generated clusters.<sup id="fnref:fn2"><a href="#fn:fn2" class="footnote">6</a></sup> Many of the clusters produced by DBSCAN however involved similar color schemes, or less obvious patterns of contrast yielding much less interesting visuals.</p>
+
+<p>Overall, I had no idea how similar a lot movie posters are but after completing this it has become fairly obvious. As an example, some of the largest clusters (sunglasses, automotive, horses, motorcycles) total close to a thousand…</p>
 
 <h3>References</h3>
 
@@ -201,9 +241,6 @@ console.log(map.getBounds().toString());
   <ol>
     <li id="fn:fn1">
       <p>Sidney Fussell, <a target="_blank" href="https://www.businessinsider.com/movie-poster-cliches-2016-5"><i>Hollywood keeps using these 13 movie poster clichés over and over again</i></a> (May 19, 2016) <a href="#fnref:fn1" class="reversefootnote">&#8617;</a></p>
-    </li>
-    <li id="fn:fn2">
-      <p>Christophe Courtois, <a target="_blank" href="https://afficheschristophecourtois.blogspot.com/2011/06/ces-affiches-me-sortent-par-les-yeux.html"><i>Ces affiches me sortent par les yeux!</i></a> (June 17, 2011) <a href="#fnref:fn2" class="reversefootnote">&#8617;</a></p>
     </li>
     <li id="fn:fn3">
       <p>Christophe Courtois, <a target="_blank" href="https://afficheschristophecourtois.blogspot.com/2011/08/question-difficile-de-quelle-couleur.html"><i>Question difficile : de quelle couleur sont les robes dans les films?</i></a> (August 21, 2011) <a href="#fnref:fn3" class="reversefootnote">&#8617;</a></p>
@@ -216,6 +253,9 @@ console.log(map.getBounds().toString());
     </li>
     <li id="fn:fn6">
       <p>L. Maaten, G. Hinton, <a target="_blank" href="https://lvdmaaten.github.io/publications/papers/JMLR_2008.pdf"><i>Visualizing Data using t-SNE</i></a> (Journal of Machine Learning Research 9, 2008) <a href="#fnref:fn6" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:fn2">
+      <p>Christophe Courtois, <a target="_blank" href="https://afficheschristophecourtois.blogspot.com/2011/06/ces-affiches-me-sortent-par-les-yeux.html"><i>Ces affiches me sortent par les yeux!</i></a> (June 17, 2011) <a href="#fnref:fn2" class="reversefootnote">&#8617;</a></p>
     </li>
   </ol>
 </div>
