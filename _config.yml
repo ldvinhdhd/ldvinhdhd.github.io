@@ -1,7 +1,7 @@
-title: "nathanrooy.github.io"
+title: "Vinh Lê"
 description: "a collection of random projects"
-feedurl: "https://nathanrooy.github.io/feed.xml"
-url: "https://nathanrooy.github.io"
+feedurl: "feed.xml"
+url: ""
 keywords: "Python, tutorials, machine learning, deep learning, natural language processing, evolutionary optimization, urban design, mobility, geospatial analysis, data science, web scraping, Cincinnati"
 
 future:      true
