@@ -2,7 +2,7 @@
 // 2017 Countdown JS
 // ========================== //
 
-const countdown = new Date("May 7, 2021");
+const countdown = new Date("Jan 25, 2020");
 
 function getRemainingTime(endtime) {
   const milliseconds = Date.parse(endtime) - Date.parse(new Date());
