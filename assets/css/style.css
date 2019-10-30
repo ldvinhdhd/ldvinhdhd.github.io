@@ -6,7 +6,7 @@ body {
   display: flex;
   align-items: center;
   min-height: 100vh;
-  text-align: center;
+  text-align: center !important;
   font-family: helvetica;
   text-transform: uppercase;
   background-image: linear-gradient(
