@@ -21,7 +21,6 @@ body {
   justify-content: space-between;
   width: 75%;
   max-width: 20rem;
-  margin: 0 auto;
 }
 
 .countdown__item {
@@ -102,7 +101,6 @@ body {
 //     display: block;
 //     height: auto;
 //     max-width: 35em;
-//     margin: 0 auto;
 //     input {
 //         text-transform: uppercase;
 //         text-align: center;
