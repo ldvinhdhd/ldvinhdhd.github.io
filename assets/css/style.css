@@ -1,19 +1,3 @@
-
-
-
-body {
-  display: flex;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
-  font-family: helvetica;
-  text-transform: uppercase;
-  background-image: linear-gradient(
-    165deg, 
-    rgba(194, 233, 221, 0.5) 3%,
-    rgba(104, 119, 132, 0.5) 100%);
-}
-
 .countdown {
   display: flex;
   flex-wrap: wrap;
@@ -52,12 +36,13 @@ body {
   border-radius: 3px;
   font-weight: bold;
   font-size: 2em;
+  text-align: center;
 }
 
 .countdown__label {
   font-size: 1em;
   padding-top: .40em;
-  
+  text-align: center;
   .countdown__item--large & {
     &:before,
     &:after {
